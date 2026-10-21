@@ -1,0 +1,46 @@
+# Render Blueprint for Fac-Check (Dashboard → New → Blueprint → pick this repository).
+# Values marked "sync: false" are secrets: Render asks for them when the Blueprint is created.
+services:
+  - type: web
+    name: fac-check
+    runtime: python
+    # 512 MB plan: fits one process with the TensorFlow model (about 340 MB).
+    # The free plan sleeps after 15 minutes without visitors, so the next visit takes a while to wake up.
+    plan: starter
+    region: singapore
+    branch: main
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi:application
+    healthCheckPath: /auth/index/
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.4
+      - key: DEBUG
+        value: "False"
+      # Render's proxy sits in front of the app; trust its X-Forwarded-* headers
+      - key: BEHIND_PROXY
+        value: "True"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      # Only needed for a custom domain, e.g. faccheck.udm.edu.ph (the .onrender.com address is added automatically)
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: SITE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

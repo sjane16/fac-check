@@ -1,0 +1,141 @@
+<div id="dashboardActionsRow" class="mb-6">
+    {% if is_head_admin %}
+    <button type="button"
+            id="generateReportBtn"
+            disabled
+            class="dashboard-generate-btn inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-50">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="w-4 h-4"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke-width="2"
+             stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        <span id="generateReportLabel">Generate Monthly Report</span>
+    </button>
+    {% endif %}
+    <div class="dashboard-period-group">
+        <span class="text-xs text-gray-500">Showing:</span>
+        <button type="button"
+                data-period="7"
+                class="period-filter-btn px-4 py-1.5 rounded-full text-xs font-medium border transition {% if period == '7' %}bg-blue-600 text-white border-blue-600 {% else %}bg-white text-gray-600 border-gray-300 hover:border-blue-400{% endif %}">
+            Last 7 Days
+        </button>
+        <button type="button"
+                data-period="30"
+                class="period-filter-btn px-4 py-1.5 rounded-full text-xs font-medium border transition {% if period == '30' %}bg-blue-600 text-white border-blue-600 {% else %}bg-white text-gray-600 border-gray-300 hover:border-blue-400{% endif %}">
+            Last 30 Days
+        </button>
+        <button type="button"
+                data-period="all"
+                class="period-filter-btn px-4 py-1.5 rounded-full text-xs font-medium border transition {% if period == 'all' %}bg-blue-600 text-white border-blue-600 {% else %}bg-white text-gray-600 border-gray-300 hover:border-blue-400{% endif %}">
+            All Time
+        </button>
+    </div>
+</div>
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+    <div class="report-status-card rounded-2xl border border-gray-200 p-6 shadow-sm bg-white h-full flex flex-col">
+        <h2 class="text-base font-semibold text-gray-700">Report Status Overview</h2>
+        <div class="report-status-content flex flex-col lg:flex-row items-stretch flex-1 min-h-0">
+            <div class="status-chart-frame" id="statusChartWrap">
+                <canvas id="statusChart" aria-hidden="true"></canvas>
+                <div class="status-chart-total">
+                    <strong data-status-count="total">0</strong>
+                    <span>reports</span>
+                </div>
+            </div>
+            <dl id="statusLegend"
+                aria-label="Report counts and percentages by status">
+                <div class="status-legend-row border-b border-gray-100">
+                    <dt><span class="status-legend-dot"
+      style="background-color: #f59e0b"
+      aria-hidden="true"></span>Pending</dt>
+                    <dd>
+                        <strong data-status-count="pending">0</strong>
+                        <span data-status-pct="pending">0%</span>
+                    </dd>
+                </div>
+                <div class="status-legend-row border-b border-gray-100">
+                    <dt><span class="status-legend-dot"
+      style="background-color: #0f4c81"
+      aria-hidden="true"></span>In Progress</dt>
+                    <dd>
+                        <strong data-status-count="in_progress">0</strong>
+                        <span data-status-pct="in_progress">0%</span>
+                    </dd>
+                </div>
+                <div class="status-legend-row border-b border-gray-100">
+                    <dt><span class="status-legend-dot"
+      style="background-color: #10b981"
+      aria-hidden="true"></span>Resolved</dt>
+                    <dd>
+                        <strong data-status-count="resolved">0</strong>
+                        <span data-status-pct="resolved">0%</span>
+                    </dd>
+                </div>
+                <div class="status-legend-row border-b border-gray-100">
+                    <dt><span class="status-legend-dot"
+      style="background-color: #64748b"
+      aria-hidden="true"></span>Closed</dt>
+                    <dd>
+                        <strong data-status-count="closed">0</strong>
+                        <span data-status-pct="closed">0%</span>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+    <div class="report-status-card rounded-2xl border border-gray-200 p-6 shadow-sm bg-white h-full flex flex-col">
+        <h2 class="text-base font-semibold text-gray-700">Reports by Category</h2>
+        <div class="report-status-content flex flex-col lg:flex-row items-stretch flex-1 min-h-0">
+            <div class="status-chart-frame" id = "categoriesChartWrap">
+                <canvas id= "categoriesChart"></canvas>
+                <div class="status-chart-total">
+                    <strong id="categoriesTotal">0</strong>
+                    <span>categories</span>
+                </div>
+            </div>
+            <dl id = "categoriesLegend">
+            </dl>
+        </div>
+    </div>
+</section>
+<section class="mb-4">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm min-w-0">
+        <h2 class="text-base font-semibold text-gray-700 mb-4">Reports by Building</h2>
+        <div class="h-[300px] relative">
+            <canvas id="buildingChart"
+                    role="img"
+                    aria-label="Reports by building, grouped by Pending, In Progress, Resolved, and Closed status"></canvas>
+        </div>
+    </div>
+</section>
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm min-w-0">
+        <h2 class="text-base font-semibold text-gray-700 mb-4">Resolution Time: Expected vs. Actual (Critical / Urgent)</h2>
+        <div class="h-[300px] relative">
+            <canvas id="resolutionChartCritical"></canvas>
+        </div>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm min-w-0">
+        <h2 class="text-base font-semibold text-gray-700 mb-4">Resolution Time: Expected vs. Actual (High Priority)</h2>
+        <div class="h-[300px] relative">
+            <canvas id="resolutionChartHigh"></canvas>
+        </div>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm min-w-0">
+        <h2 class="text-base font-semibold text-gray-700 mb-4">Resolution Time: Expected vs. Actual (Standard)</h2>
+        <div class="h-[300px] relative">
+            <canvas id="resolutionChartStandard"></canvas>
+        </div>
+    </div>
+</section>
+<div class="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm mb-4 flex items-center justify-between text-sm">
+    <span class="text-gray-500">Resolved within target time (by priority)</span>
+    {% if sla_total %}
+        <span class="font-semibold text-gray-700">{{ sla_within_pct|floatformat:1 }}% <span class="font-normal text-gray-400">({{ sla_met }} of {{ sla_total }})</span></span>
+    {% else %}
+        <span class="text-gray-400">N/A</span>
+    {% endif %}
+</div>

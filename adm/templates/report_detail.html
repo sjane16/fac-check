@@ -1,0 +1,1284 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% block content %}
+  <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-24 lg:pb-10 w-full">
+    <!-- Back button -->
+    <a href="{% url 'reports' %}"
+       class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-4 h-4"
+           fill="none"
+           viewBox="0 0 24 24"
+           stroke-width="2"
+           stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+      Back to Reports
+    </a>
+    <!-- Modal-style card -->
+    <div class="bg-white border border-gray-200 rounded-3xl shadow overflow-hidden">
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-3 px-4 py-3 lg:px-6 lg:py-5 border-b border-gray-100">
+        <div class="flex items-center flex-nowrap gap-1.5 lg:gap-3 overflow-x-auto mt-2 lg:mt-0">
+          <h1 class="text-sm lg:text-base font-bold text-gray-900 whitespace-nowrap">Report Details</h1>
+          <span class="text-[10px] lg:text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full whitespace-nowrap">{{ report.job_order_id }}</span>
+          {% if report.status == 'pending' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% elif report.status == 'in_progress' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% elif report.status == 'resolved' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-green-50 text-green-700 border border-green-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% elif report.status == 'closed' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% endif %}
+        </div>
+        {% if report.status == 'closed' and report.survey_method == 'manual' and report.survey.scan_file %}
+          <a href="{{ report.survey.scan_file.url }}" target="_blank" rel="noopener"
+             class="w-full lg:w-auto lg:ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 lg:py-2 rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75h6v6m-.75-5.25-8.25 8.25M19.5 13.5v5.25A2.25 2.25 0 0 1 17.25 21h-12A2.25 2.25 0 0 1 3 18.75v-12A2.25 2.25 0 0 1 5.25 4.5H10.5" />
+            </svg>
+            View Scanned Job Order
+          </a>
+        {% elif is_head_admin and report.status != 'pending' %}
+          <button type="button"
+                  onclick="exportJobOrder()"
+                  class="w-full lg:w-auto lg:ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 lg:py-2 rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-4 h-4"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke-width="2"
+                 stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export
+          </button>
+        {% endif %}
+      </div>
+      <!-- Body: two columns -->
+      <div class="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+        <!-- LEFT PANEL -->
+        <div class="w-full lg:w-72 xl:w-80 shrink-0 p-6 flex flex-col gap-5">
+          <!-- Photo(s) -->
+          <div>
+            {% if report.completion_photo %}
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Submitted Photo</p>
+                  {% if report.photo %}
+                    <img src="{{ report.photo.url }}"
+                         alt="Submitted Photo"
+                         onclick="openPhotoModal('{{ report.photo.url }}')"
+                         class="block w-full h-36 object-cover rounded-xl bg-gray-100 cursor-pointer" />
+                  {% else %}
+                    <div class="w-full h-36 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a3 3 0 0 1 4.243 0l5.159 5.159m-1.5-1.5 1.409-1.409a3 3 0 0 1 4.243 0l2.909 2.909M3.75 18h16.5M3 9.75h18" />
+                      </svg>
+                    </div>
+                  {% endif %}
+                </div>
+                <div>
+                  <p class="text-[10px] font-semibold text-green-600 uppercase tracking-wide mb-1.5">Completion Photo</p>
+                  <img src="{{ report.completion_photo.url }}"
+                       alt="Completion Photo"
+                       onclick="openPhotoModal('{{ report.completion_photo.url }}')"
+                       class="block w-full h-36 object-cover rounded-xl bg-gray-100 cursor-pointer" />
+                </div>
+              </div>
+            {% elif report.photo %}
+              <img src="{{ report.photo.url }}"
+                   alt="Report Photo"
+                   onclick="openPhotoModal('{{ report.photo.url }}')"
+                   class="w-full h-52 object-cover rounded-xl bg-gray-100 cursor-pointer" />
+            {% else %}
+              <div class="w-full h-52 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a3 3 0 0 1 4.243 0l5.159 5.159m-1.5-1.5 1.409-1.409a3 3 0 0 1 4.243 0l2.909 2.909M3.75 18h16.5M3 9.75h18" />
+                </svg>
+              </div>
+            {% endif %}
+          </div>
+          <!-- Meta -->
+          <div class="bg-gray-50 rounded-2xl p-4 space-y-3">
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Concern Category</p>
+                <p class="text-sm font-semibold text-gray-800">{{ report.get_category_display }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Location / Room</p>
+                <p class="text-sm font-semibold text-gray-800">{{ report.location }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Inventory Tag No.</p>
+                <p class="text-sm font-semibold text-gray-800 break-words">{{ report.inventory_tag_no|default:"N/A" }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Property Inventory No.</p>
+                <p class="text-sm font-semibold text-gray-800 break-words">{{ report.property_inventory_no|default:"N/A" }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M4.5 6.75h15A1.5 1.5 0 0121 8.25v10.5a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 18.75V8.25A1.5 1.5 0 014.5 6.75z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Date Submitted</p>
+                <p class="text-sm font-semibold text-gray-800">{{ report.submitted_at|date:"M d, Y · h:i A" }}</p>
+              </div>
+            </div>
+            {% if report.status == 'resolved' or report.status == 'closed' %}
+              <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.6"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-400">Date Accomplished</p>
+                  <p class="text-sm font-semibold text-gray-800">
+                    {% if report.accomplished_at %}{{ report.accomplished_at|date:"M d, Y · h:i A" }}{% else %}—{% endif %}
+                  </p>
+                </div>
+              </div>
+            {% endif %}
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Reported By</p>
+                <p class="text-sm font-semibold text-gray-800">
+                  {% if report.user %}{{ report.user.get_full_name|default:report.user.username }}{% else %}—{% endif %}
+                </p>
+              </div>
+            </div>
+            {% if report.priority %}
+              <div class="flex items-start gap-3 pt-3 border-t border-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.6"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9H3" />
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-400 mb-1.5">Current Priority</p>
+                  {% if report.priority == 'critical' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">Critical / Urgent</span>
+                  {% elif report.priority == 'high' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-orange-200">High Priority</span>
+                  {% elif report.priority == 'standard' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">Standard</span>
+                  {% elif report.priority == 'awaiting_materials' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">Awaiting Materials</span>
+                  {% elif report.priority == 'awaiting_approval' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Awaiting Approval</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- RIGHT PANEL -->
+        <div class="flex-1 min-w-0 p-6 space-y-8 margin-bottom-8">
+          {% if report.status != 'in_progress' %}
+            <!-- Description -->
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Description</p>
+              <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed italic">
+                {{ report.description|default:"No description provided." }}
+              </div>
+            </div>
+          {% endif %}
+          {% if report.status == 'resolved' or report.status == 'closed' %}
+            {% if report.findings %}
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Findings</p>
+                <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed italic">{{ report.findings }}</div>
+              </div>
+            {% endif %}
+            {% if report.recommendation %}
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Recommendation</p>
+                <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed italic">
+                  {{ report.recommendation }}
+                </div>
+              </div>
+            {% endif %}
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">MED Personnel</p>
+              <div id="med-personnel-summary" class="relative">
+                {% include 'partials/_selected_personnel.html' %}
+              </div>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-5">Progress</p>
+              <div class="overflow-x-auto pb-2">
+                <div class="relative min-w-[420px] pt-2 pb-2">
+                  <div class="absolute top-6 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200"></div>
+                  {% if report.status == 'resolved' %}
+                    <div class="absolute top-6 left-[12.5%] w-[50%] h-0.5 bg-blue-600"></div>
+                  {% elif report.status == 'closed' %}
+                    <div class="absolute top-6 left-[12.5%] right-[12.5%] h-0.5 bg-blue-600"></div>
+                  {% endif %}
+                  <div class="relative grid grid-cols-4 text-center">
+                    <div class="flex flex-col items-center">
+                      <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      </div>
+                      <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">Pending</p>
+                      <p class="mt-1 text-[10px] text-gray-400">{{ report.submitted_at|date:"M d, Y" }}</p>
+                      <p class="text-[10px] text-gray-300">{{ report.submitted_at|date:"h:i A" }}</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      </div>
+                      <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">In Progress</p>
+                      {% if report.in_progress_at %}
+                        <p class="mt-1 text-[10px] text-gray-400">{{ report.in_progress_at|date:"M d, Y" }}</p>
+                        <p class="text-[10px] text-gray-300">{{ report.in_progress_at|date:"h:i A" }}</p>
+                      {% else %}
+                        <p class="mt-1 text-[10px] text-gray-400">-</p>
+                      {% endif %}
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      </div>
+                      <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">Resolved</p>
+                      {% if report.accomplished_at %}
+                        <p class="mt-1 text-[10px] text-gray-400">{{ report.accomplished_at|date:"M d, Y" }}</p>
+                        <p class="text-[10px] text-gray-300">{{ report.accomplished_at|date:"h:i A" }}</p>
+                      {% else %}
+                        <p class="mt-1 text-[10px] text-gray-400">-</p>
+                      {% endif %}
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center shadow-sm {% if report.status == 'closed' %}bg-blue-600 text-white{% else %}bg-white border-4 border-gray-300{% endif %}">
+                        {% if report.status == 'closed' %}
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        {% endif %}
+                      </div>
+                      <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">Closed</p>
+                      {% if report.status == 'closed' %}
+                        {% if report.closed_at %}
+                          <p class="mt-1 text-[10px] text-gray-400">{{ report.closed_at|date:"M d, Y" }}</p>
+                          <p class="text-[10px] text-gray-300">{{ report.closed_at|date:"h:i A" }}</p>
+                        {% else %}
+                          <p class="mt-1 text-[10px] text-gray-400">-</p>
+                        {% endif %}
+                      {% else %}
+                        <p class="mt-1 text-[10px] text-gray-400">-</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+          {% if report.status == 'in_progress' %}
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">MED Personnel</p>
+              <div id="med-personnel-summary" class="relative">
+                {% include 'partials/_selected_personnel.html' %}
+              </div>
+            </div>
+          {% endif %}
+          {% if report.status == 'resolved' %}
+            {% if is_med_personnel_report and not report.survey %}
+              {% if not has_med_assignees %}
+                <p class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">Assign at least one MED personnel before recording the group QQT rating.</p>
+              {% elif can_rate_med_personnel %}
+                <p class="sr-only">The Head Admin CSS rating modal is open.</p>
+              {% else %}
+                <p class="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700">Waiting for the Head Admin to submit the group QQT rating.</p>
+              {% endif %}
+            {% elif report.survey_method == 'manual' and not report.survey %}
+              <form method="POST" enctype="multipart/form-data" action="{% url 'adm_manual_survey' report.id %}" class="space-y-6">
+                {% csrf_token %}
+                <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Record Manual Survey</h2>
+                <div>
+                  <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Scanned Job Order (JPG or PNG)</p>
+                  <div class="bg-gray-50 rounded-xl px-4 py-3">
+                    <input id="manual-scan-file" type="file" name="scan_file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required class="w-full text-sm text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-gray-700 file:text-xs file:font-semibold hover:file:bg-blue-100 focus:outline-none">
+                  </div>
+                  <p class="text-xs text-gray-400 mt-1.5">JPG or PNG, up to 10 MB.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <label class="block min-w-0">
+                    <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Quality</span>
+                    <select name="quality" data-cdd data-cdd-width="100%" data-cdd-class="w-full" required class="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2">
+                      <option value="">Select</option>{% for score in '12345' %}<option value="{{ score }}">{{ score }}</option>{% endfor %}
+                    </select>
+                  </label>
+                  <label class="block min-w-0">
+                    <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Quantity</span>
+                    <select name="quantity" data-cdd data-cdd-width="100%" data-cdd-class="w-full" required class="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2">
+                      <option value="">Select</option>{% for score in '12345' %}<option value="{{ score }}">{{ score }}</option>{% endfor %}
+                    </select>
+                  </label>
+                  <label class="block min-w-0">
+                    <span class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Timeliness</span>
+                    <select name="timeliness" data-cdd data-cdd-width="100%" data-cdd-class="w-full" required class="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2">
+                      <option value="">Select</option>{% for score in '12345' %}<option value="{{ score }}">{{ score }}</option>{% endfor %}
+                    </select>
+                  </label>
+                </div>
+                <button type="submit" class="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Record Survey and Close Report</button>
+              </form>
+            {% elif report.survey_method == 'system' and not report.survey %}
+              <p class="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700">Waiting for their submission</p>
+            {% endif %}
+          {% endif %}
+          <!-- ═══════════════════════════════════════════════════════
+             SINGLE UNIFIED FORM
+             Covers: Priority + Assigned Personnel.
+             Status only auto-moves when Priority and Personnel are assigned.
+             ONE "Save Changes" button submits all.
+        ═══════════════════════════════════════════════════════════ -->
+          {% if report.status == 'pending' %}
+            <form id="report-save-form" method="POST" action="{% url 'adm_report_save' report.id %}" class="w-full">
+              {% csrf_token %}
+              <!-- ═══════════════════════════════════
+     CNN RECOMMENDATION
+════════════════════════════════════ -->
+              <div class="mb-8">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">CNN Image Classification</p>
+                <div class="rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <p class="text-xs text-gray-500">Recommended Category</p>
+                      <p class="text-lg font-bold text-gray-900 mt-1">
+                        {% if report.cnn_raw_prediction %}
+                          {{ report.cnn_raw_prediction }}
+                        {% else %}
+                          No CNN prediction available
+                        {% endif %}
+                      </p>
+                    </div>
+                    {% if report.cnn_confidence is not None %}
+                      <div class="sm:text-right">
+                        <p class="text-xs text-gray-500">Confidence Level</p>
+                        <p class="text-lg font-bold text-blue-600 mt-1">{% widthratio report.cnn_confidence 1 100 %}%</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                  {% if report.cnn_confidence is not None %}
+                    <div class="mt-4">
+                      <div class="flex items-center justify-between text-xs text-gray-500 mb-1.5">
+                        <span>CNN Confidence</span>
+                        <span>{% widthratio report.cnn_confidence 1 100 %}%</span>
+                      </div>
+                      <div class="w-full h-2 bg-blue-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-600 rounded-full"
+                             style="width: {% widthratio report.cnn_confidence 1 100 %}%"></div>
+                      </div>
+                    </div>
+                  {% endif %}
+                  <div class="mt-4 pt-4 border-t border-blue-100">
+                    {% if report.flagged_for_review %}
+                      <div class="flex items-start gap-2 text-amber-600">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-4 h-4 mt-0.5 shrink-0"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2"
+                             stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303 3.376 c-.866 1.5-3.03 1.5-3.896 0 L12 6.772 6.593 16.126 c-.866 1.5-3.03 1.5-3.896 0 L8.104 6.772 c.866-1.5 3.03-1.5 3.896 0 l5.407 9.354Z" />
+                        </svg>
+                        <p class="text-xs leading-relaxed">
+                          CNN prediction requires manual review.
+                          Please verify the recommended category.
+                        </p>
+                      </div>
+                    {% else %}
+                      <div class="flex items-start gap-2 text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-4 h-4 mt-0.5 shrink-0"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2"
+                             stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        <p class="text-xs leading-relaxed">
+                          CNN recommendation available.
+                          Administrator may confirm or modify the category below.
+                        </p>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <!-- ═══════════════════════════════════
+     ADMIN CLASSIFICATION
+════════════════════════════════════ -->
+              <div class="mb-8">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Admin Classification</p>
+                <div class="w-full">
+                  <label class="block text-sm font-medium text-gray-700 mb-1.5">Concern Category</label>
+                  <div class="relative w-full">
+                    <select name="category"
+                            data-cdd
+                            data-cdd-width="100%"
+                            data-cdd-class="w-full"
+                            {% if is_locked %}disabled{% endif %}
+                            aria-label="Concern Category">
+                      {% for value, label in report.CATEGORY_CHOICES %}
+                        <option value="{{ value }}"
+                                {% if report.category == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-2">
+                    CNN classification is provided as a recommendation only.
+                    The administrator may correct the final category.
+                  </p>
+                  <div id="custom-category-wrapper"
+                       class="mt-4 {% if report.category != 'others' %}hidden{% endif %}">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Specified Category</label>
+                    <input type="text"
+                           name="custom_category"
+                           value="{{ report.custom_category|default:'' }}"
+                           placeholder="Specify category"
+                           {% if is_locked %}disabled{% endif %}
+                           class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400">
+                  </div>
+                </div>
+              </div>
+              {% if report.status == 'pending' %}
+                <!-- ═══════════════════════════════════
+                  ASSIGN PRIORITY & PERSONNEL
+              ════════════════════════════════════ -->
+                <div id="assignSection">
+                  <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Assign Priority &amp; Personnel</p>
+                  <div class="space-y-3">
+                    <!-- Priority Level -->
+                    <div class="w-full">
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Priority Level</label>
+                      <div class="relative w-full">
+                        <select name="priority"
+                                id="prioritySelect"
+                                data-cdd
+                                data-cdd-width="100%"
+                                data-cdd-class="w-full"
+                                {% if is_locked %}disabled{% endif %}
+                                aria-label="Priority Level">
+                          <option value="" {% if not report.priority %}selected{% endif %}>Select priority</option>
+                          <option value="critical"
+                                  {% if report.priority == 'critical' %}selected{% endif %}>3 - Critical / Urgent</option>
+                          <option value="high" {% if report.priority == 'high' %}selected{% endif %}>2 - High Priority</option>
+                          <option value="standard"
+                                  {% if report.priority == 'standard' %}selected{% endif %}>1 - Standard</option>
+                        </select>
+                      </div>
+                    </div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Pending Sub-status</label>
+                    <div class="space-y-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                      <label class="flex items-center gap-3 text-sm text-gray-700">
+                        <input type="checkbox"
+                               name="pending_awaiting_personnel"
+                               value="1"
+                               {% if report.pending_awaiting_personnel %}checked{% endif %}
+                               {% if is_locked %}disabled{% endif %}
+                               id="pending-awaiting-personnel"
+                               class="w-4 h-4 rounded border-gray-300 text-blue-600">
+                        <span>With Assigned Personnel <span class="text-red-500" title="Required to move to In Progress">*</span></span>
+                      </label>
+                      <label class="flex items-center gap-3 text-sm text-gray-700">
+                        <input type="checkbox"
+                               name="pending_awaiting_materials"
+                               id="pending-awaiting-materials"
+                               value="1"
+                               {% if report.pending_awaiting_materials %}checked{% endif %}
+                               {% if is_locked %}disabled{% endif %}
+                               class="w-4 h-4 rounded border-gray-300 text-blue-600">
+                         <span>Materials Available</span>
+                      </label>
+                      <label class="flex items-center gap-3 text-sm text-gray-700">
+                        <input type="checkbox"
+                               name="pending_awaiting_approval"
+                               value="1"
+                               {% if report.pending_awaiting_approval %}checked{% endif %}
+                               {% if is_locked %}disabled{% endif %}
+                               class="w-4 h-4 rounded border-gray-300 text-blue-600">
+                        Approved/With Budget
+                      </label>
+                    </div>
+                    <!-- Assign Personnel -->
+                    <div>
+                      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">MED Personnel</p>
+                      <div id="med-personnel-summary" class="relative" aria-live="polite">
+                        {% include 'partials/_selected_personnel.html' %}
+                      </div>
+                    </div>
+                    <!-- Findings & Recommendation -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Findings <span class="text-red-500">*</span></label>
+                      <textarea name="findings"
+                                rows="2"
+                                required
+                                {% if is_locked %}disabled{% endif %}
+                                placeholder="What was found during inspection/repair?"
+                                class="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 resize-none">{{ report.findings }}</textarea>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Recommendation <span class="text-red-500">*</span></label>
+                      <textarea name="recommendation"
+                                rows="2"
+                                required
+                                {% if is_locked %}disabled{% endif %}
+                                placeholder="Recommended action or follow-up"
+                                class="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 resize-none">{{ report.recommendation }}</textarea>
+                    </div>
+                    <!-- Materials Requirement (needed only when materials are unavailable) -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Materials Requirement <span id="materials-requirement-hint" class="text-xs text-gray-400 font-normal">Required if Materials Available is unchecked; max 4</span></label>
+                      <div class="space-y-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                        <div class="flex gap-2 text-xs font-semibold text-gray-400">
+                          <span style="width:18%;">Quantity</span>
+                          <span style="width:24%;">Unit</span>
+                          <span style="flex:1;">Item Description</span>
+                        </div>
+                        <div id="material-rows" class="space-y-2">
+                        {% for m in report.materials_rows %}
+                          {% if forloop.first or m.qty or m.unit or m.description %}
+                          <div class="material-row flex gap-2">
+                            <input type="text"
+                                   name="mat_qty"
+                                   value="{{ m.qty }}"
+                                   inputmode="numeric"
+                                   pattern="[0-9]*"
+                                   maxlength="6"
+                                   placeholder="Qty"
+                                   style="width:18%; padding:8px 10px;"
+                                   class="border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select name="mat_unit"
+                                    data-value="{{ m.unit }}"
+                                    style="width:24%; padding:8px 10px;"
+                                    class="mat-unit-select border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+                            <input type="text"
+                                   name="mat_desc"
+                                   value="{{ m.description }}"
+                                   maxlength="100"
+                                   placeholder="Item description"
+                                   style="flex:1; min-width:0; padding:8px 10px;"
+                                   class="border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="button"
+                                    class="remove-material shrink-0 text-gray-400 hover:text-red-500 text-sm px-2"
+                                    onclick="removeMaterialRow(this)">✕</button>
+                          </div>
+                          {% endif %}
+                        {% endfor %}
+                        </div>
+                        <p id="materials-requirement-error" class="hidden text-xs text-red-600" role="alert"></p>
+                        <button type="button"
+                                id="add-material"
+                                onclick="addMaterialRow()"
+                                class="text-sm text-blue-600 hover:text-blue-700 font-medium flex w-fit ml-auto items-center gap-1">
+                          <span class="text-base leading-none">+</span> Add material
+                        </button>
+                        <p class="text-xs text-gray-400">Appears on the Job Order PDF. Leave blank any fields you don't need.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+              <!-- Predicted Resolution Time -->
+              <div class="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4 text-blue-400 shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.8"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0 a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <span class="text-sm text-blue-600">
+                  Predicted Resolution Time:
+                  <strong id="predictedResolutionValue">
+                    {% if report.priority %}{{ report.expected_resolution_hours }} hours{% else %}Assign a priority to calculate{% endif %}
+                  </strong>
+                </span>
+              </div>
+              <button type="submit"
+                      class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors">
+                Save Changes
+              </button>
+            </form>
+          {% endif %}
+          <!-- ═══════════════════════════════════
+             UPDATE STATUS (info only — no manual trigger buttons
+             except Mark Resolved, which appears once in_progress)
+        ════════════════════════════════════ -->
+          {% if report.status == 'pending' or report.status == 'in_progress' %}
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Update Status</p>
+              <div class="flex flex-wrap gap-3">
+                {% if report.status == 'pending' %}
+                  <span class="text-sm text-gray-400 italic">Status moves to "In Progress" when Priority, at least one Personnel, "With Assigned Personnel", Findings, and Recommendation are provided. "Materials Available" is optional; if unchecked, enter at least one complete Materials Requirement row. "Approved/With Budget" is optional.</span>
+                {% elif report.status == 'in_progress' %}
+                  <div class="space-y-3 w-full max-w-sm">
+                    <form method="POST"
+                          action="{% url 'adm_report_status' report.id %}"
+                          enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <input type="hidden" name="status" value="resolved" />
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Upload Image (proof of completed repair)</label>
+                      <input type="file"
+                             name="completion_photo"
+                             accept="image/*"
+                             required
+                             class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 mb-3 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs file:font-semibold hover:file:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <label class="block text-sm font-medium text-gray-700 mb-1.5">Date and Time Completed</label>
+                      <input type="datetime-local"
+                             name="accomplished_at"
+                             id="accomplishedAtInput"
+                             {% if report.in_progress_at %}min="{{ report.in_progress_at|date:'Y-m-d\TH:i' }}"{% endif %}
+                             max="{% now 'Y-m-d\TH:i' %}"
+                             required
+                             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <p id="accomplishedAtError" class="hidden text-xs text-red-500 -mt-2 mb-3">Date and Time Completed cannot be in the future.</p>
+                      <button type="submit"
+                              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-4 h-4"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2.5"
+                             stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                        Mark Resolved
+                      </button>
+                    </form>
+                    <p class="text-sm text-gray-400 italic">Enter the actual date and time the issue was resolved, then confirm to mark it Resolved.</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        <!-- end right panel -->
+      </div>
+      <!-- end body -->
+    </div>
+    <!-- end card -->
+  </main>
+  {% if can_edit_personnel %}
+    {% include 'partials/_personnel_assignment_modal.html' %}
+    <script src="{% static 'adm/js/personnel_assignment.js' %}" defer></script>
+  {% endif %}
+  {% if can_rate_med_personnel %}
+    <div id="head-rating-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-4 pointer-events-auto">
+      <form id="head-rating-form" method="POST" action="{% url 'adm_personnel_rating' report.id %}" aria-labelledby="head-rating-title" class="bg-white rounded-3xl shadow-xl w-full max-w-3xl max-h-[94vh] overflow-y-auto p-6 sm:p-8">
+        {% csrf_token %}
+        <h2 id="head-rating-title" class="text-xl font-bold text-gray-900 mb-1 text-center">Customer Satisfaction Survey</h2>
+        <p class="text-sm text-gray-400 text-center mb-6">Report {{ report.job_order_id }}</p>
+        <p class="text-sm text-gray-500 text-center mb-3">Please rate each part of the service from 1 to 5.</p>
+        <p class="text-xs text-gray-500 text-center mb-7">This group rating applies to: <span class="font-semibold text-gray-700">{{ report.assigned_personnel_summary }}</span></p>
+        <div class="space-y-6">
+          {% for field, question in qqt_questions %}
+            <section class="rounded-2xl border border-gray-100 bg-gray-50/70 px-3 py-4 sm:px-5">
+              <h3 class="text-base font-semibold text-gray-700 mb-4 text-center">{{ question }}</h3>
+              <div class="grid grid-cols-5 gap-1 sm:gap-3">
+                {% for emoji, label, val in qqt_emojis %}
+                  <button type="button" data-head-rating-field="{{ field }}" id="head-{{ field }}-emoji-{{ val }}" onclick="selectHeadRating('{{ field }}', {{ val }})" class="min-w-0 flex flex-col items-center justify-start px-1 py-3 rounded-xl transition-all">
+                    <span class="text-3xl sm:text-4xl leading-none mb-2">{{ emoji }}</span>
+                    <span class="text-xs font-semibold text-gray-600 text-center leading-none mb-1">{{ val }}</span>
+                    <span class="text-[9px] sm:text-xs text-gray-400 text-center leading-tight min-h-[30px] flex items-start justify-center">{{ label }}</span>
+                  </button>
+                {% endfor %}
+              </div>
+            </section>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="quality" id="head-rating-quality">
+        <input type="hidden" name="quantity" id="head-rating-quantity">
+        <input type="hidden" name="timeliness" id="head-rating-timeliness">
+        <p id="head-rating-error" class="hidden text-xs text-red-500 text-center mt-3">Please complete all three ratings before submitting.</p>
+        <button id="head-rating-submit" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors mt-7">Submit CSS</button>
+      </form>
+    </div>
+    <script>
+      (function () {
+        const modal = document.getElementById('head-rating-modal');
+        const form = document.getElementById('head-rating-form');
+        if (!modal || !form) return;
+
+        function lockScroll() {
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.overflow = 'hidden';
+        }
+        window.selectHeadRating = function (field, score) {
+          document.getElementById('head-rating-' + field).value = score;
+          document.querySelectorAll('[data-head-rating-field="' + field + '"]').forEach(function (button) {
+            button.classList.remove('bg-blue-50', 'ring-2', 'ring-blue-400');
+          });
+          const selected = document.getElementById('head-' + field + '-emoji-' + score);
+          if (selected) selected.classList.add('bg-blue-50', 'ring-2', 'ring-blue-400');
+          document.getElementById('head-rating-error').classList.add('hidden');
+        };
+        form.addEventListener('submit', function (event) {
+          const complete = ['quality', 'quantity', 'timeliness'].every(function (field) {
+            return document.getElementById('head-rating-' + field).value;
+          });
+          if (!complete) {
+            event.preventDefault();
+            document.getElementById('head-rating-error').classList.remove('hidden');
+          } else {
+            const submit = document.getElementById('head-rating-submit');
+            submit.disabled = true;
+            submit.textContent = 'Submitting...';
+          }
+        });
+        lockScroll();
+      })();
+    </script>
+  {% endif %}
+  {% if rating_success_personnel %}
+    <div id="personnel-rating-success-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-4 pointer-events-auto overscroll-none">
+      <div role="dialog" aria-modal="true" aria-labelledby="personnel-rating-success-title" class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6 sm:p-8 flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+          <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+        </div>
+        <h2 id="personnel-rating-success-title" class="text-base font-bold text-gray-900 mb-2">Thank you for evaluating the MED personnel!</h2>
+        <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-start gap-3 text-left mb-6">
+          <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+          <p class="text-xs text-blue-700 leading-relaxed text-justify">The group CSS rating was recorded for <span class="font-semibold">{{ rating_success_personnel }}</span>. Report {{ report.job_order_id }} is now Closed.</p>
+        </div>
+        <button type="button" id="personnel-rating-success-close" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-xl transition-colors">Got it</button>
+      </div>
+    </div>
+    <script>
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.getElementById('personnel-rating-success-close').addEventListener('click', function () {
+        document.getElementById('personnel-rating-success-modal').remove();
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      });
+    </script>
+  {% endif %}
+  <style>
+    .unit-dd { position: relative; }
+    .unit-dd-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; font-size: 0.875rem; color: #374151; text-align: left; cursor: pointer; }
+    .unit-dd-btn:focus, .unit-dd-btn.open { outline: none; border-color: var(--fc-focus-color); box-shadow: 0 0 0 2px var(--fc-focus-color); }
+    .unit-dd-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: #9ca3af; }
+    .unit-dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .unit-dd-label.placeholder { color: #9ca3af; }
+    .unit-dd-list { display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 50; min-width: 9rem; max-height: 14rem; overflow-y: auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); padding: 6px; }
+    .unit-dd-list.show { display: block; }
+    .unit-dd-list.up { top: auto; bottom: calc(100% + 6px); }
+    .unit-dd-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; border-radius: 10px; font-size: 0.875rem; color: #374151; background: transparent; text-align: left; cursor: pointer; }
+    .unit-dd-item:hover { background: var(--fc-brand); color: #fff; }
+    .unit-dd-item.selected { font-weight: 600; }
+    .unit-dd-item .chk { visibility: hidden; width: 16px; height: 16px; color: var(--fc-brand); flex-shrink: 0; }
+    .unit-dd-item.selected .chk { visibility: visible; }
+    .unit-dd-item:hover .chk { color: #fff; }
+    /* Material units use a separate widget from the shared custom dropdown. */
+    html.dark .unit-dd-btn { background: var(--fc-surface); border-color: var(--color-gray-300); color: var(--color-gray-700); }
+    html.dark .unit-dd-btn:focus, html.dark .unit-dd-btn.open { border-color: var(--fc-focus-color); box-shadow: 0 0 0 2px var(--fc-focus-color); }
+    html.dark .unit-dd-btn svg, html.dark .unit-dd-label.placeholder { color: var(--color-gray-400); }
+    html.dark .unit-dd-list { background: var(--fc-raised); border-color: var(--color-gray-200); }
+    html.dark .unit-dd-item { color: var(--color-gray-700); }
+    html.dark .unit-dd-item:hover, html.dark .unit-dd-item:focus-visible { background: var(--color-blue-100); color: var(--fc-accent-strong); }
+    html.dark .unit-dd-item .chk { color: var(--fc-accent); }
+    html.dark .unit-dd-item:hover .chk, html.dark .unit-dd-item:focus-visible .chk { color: var(--fc-accent-strong); }
+  </style>
+  <!-- ═══════════════════════════════════
+     PHOTO LIGHTBOX MODAL
+════════════════════════════════════ -->
+  <div id="photoModal"
+       class="hidden fixed inset-0 z-50 items-center justify-center bg-black/70 p-4"
+       onclick="closePhotoModal(event)">
+    <div class="relative max-w-[90vw] max-h-[90vh]">
+      <button type="button"
+              onclick="closePhotoModal(event)"
+              class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
+              aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="w-5 h-5"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke-width="2.5"
+             stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <img id="photoModalImg"
+           src=""
+           alt="Concern photo (enlarged)"
+           class="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded-2xl shadow-2xl" />
+    </div>
+  </div>
+  <!-- ═══════════════════════════════════
+     MARK RESOLVED CONFIRMATION MODAL
+════════════════════════════════════ -->
+  <div id="resolve-confirm-modal"
+       class="hidden fixed inset-0 z-[9999] items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-4">
+    <div role="dialog"
+         aria-modal="true"
+         aria-labelledby="resolve-confirm-title"
+         class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6 sm:p-8 text-center">
+      <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+      </div>
+      <h2 id="resolve-confirm-title" class="text-base font-bold text-gray-900 mb-2">Mark {{ report.job_order_id }} as Resolved?</h2>
+      <p class="text-sm text-gray-500 mb-6">Please check that the photo and the completion date and time are correct. This will update the report status and notify the reporter.</p>
+      <div class="flex gap-3">
+        <button type="button"
+                id="resolve-confirm-cancel"
+                class="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+        <button type="button"
+                id="resolve-confirm-ok"
+                class="flex-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors disabled:opacity-60">Mark Resolved</button>
+      </div>
+    </div>
+  </div>
+  {{ priority_sla_hours|json_script:"priority-sla-hours" }}
+  <script>
+      // ── Photo lightbox ──
+      function openPhotoModal(url) {
+          const modal = document.getElementById('photoModal');
+          const img = document.getElementById('photoModalImg');
+          img.src = url;
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          document.body.style.overflow = 'hidden';
+      }
+
+      function closePhotoModal(e) {
+          if (e.target.id === 'photoModal' || e.target.closest('button[aria-label="Close"]')) {
+              const modal = document.getElementById('photoModal');
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+              document.body.style.overflow = '';
+          }
+      }
+
+      document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+              const modal = document.getElementById('photoModal');
+              if (!modal.classList.contains('hidden')) {
+                  modal.classList.add('hidden');
+                  modal.classList.remove('flex');
+                  document.body.style.overflow = '';
+              }
+
+              const jobOrderOverlay = document.getElementById('job-order-overlay');
+              if (jobOrderOverlay) {
+                  closeJobOrder();
+              }
+          }
+      });
+
+      const categorySelect = document.querySelector('select[name="category"]');
+      if (categorySelect) {
+          categorySelect.addEventListener("change", function() {
+              document.getElementById("custom-category-wrapper").classList.toggle("hidden", this.value !== "others");
+          });
+      }
+
+      // ── Materials Requirement (add/remove rows, max 4) ──
+      const MAX_MATERIALS = 4;
+      const materialsAvailableCheckbox = document.getElementById("pending-awaiting-materials");
+      const materialsRequirementHint = document.getElementById("materials-requirement-hint");
+      const materialsRequirementError = document.getElementById("materials-requirement-error");
+
+      function updateMaterialControls() {
+          const rows = document.querySelectorAll("#material-rows .material-row");
+          rows.forEach(function(row) {
+              const removeBtn = row.querySelector(".remove-material");
+              if (removeBtn) removeBtn.classList.toggle("hidden", rows.length <= 1);
+          });
+          const addBtn = document.getElementById("add-material");
+          if (addBtn) addBtn.classList.toggle("hidden", rows.length >= MAX_MATERIALS);
+          if (materialsRequirementHint) {
+              materialsRequirementHint.textContent = materialsAvailableCheckbox && materialsAvailableCheckbox.checked
+                  ? "Optional when materials are available; max 4"
+                  : "Required if Materials Available is unchecked; max 4";
+          }
+      }
+
+      if (materialsAvailableCheckbox) {
+          materialsAvailableCheckbox.addEventListener("change", updateMaterialControls);
+      }
+
+      function addMaterialRow() {
+          const container = document.getElementById("material-rows");
+          if (!container || container.querySelectorAll(".material-row").length >= MAX_MATERIALS) return;
+          const row = document.createElement("div");
+          row.className = "material-row flex gap-2";
+          row.innerHTML = `
+              <input type="text" name="mat_qty" value="" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Qty" style="width:18%; padding:8px 10px;" class="border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select name="mat_unit" data-value="" style="width:24%; padding:8px 10px;" class="mat-unit-select border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+              <input type="text" name="mat_desc" value="" maxlength="100" placeholder="Item description" style="flex:1; min-width:0; padding:8px 10px;" class="border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <button type="button" class="remove-material shrink-0 text-gray-400 hover:text-red-500 text-sm px-2" onclick="removeMaterialRow(this)">✕</button>
+          `;
+          container.appendChild(row);
+          enhanceUnitSelect(row.querySelector(".mat-unit-select"));
+          updateMaterialControls();
+      }
+
+      function removeMaterialRow(button) {
+          const rows = document.querySelectorAll("#material-rows .material-row");
+          if (rows.length <= 1) return;
+          button.closest(".material-row").remove();
+          updateMaterialControls();
+      }
+
+      const MATERIAL_UNITS = ["pcs", "box", "meter", "set", "roll", "pair", "pack", "bundle", "bag", "sheet", "kg", "liter", "gallon", "can"];
+
+      function buildUnitOptions(select) {
+          if (!select) return;
+          const current = select.dataset.value || "";
+          const units = MATERIAL_UNITS.slice();
+          if (current && !units.includes(current)) units.push(current);
+          select.innerHTML = "";
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "Unit";
+          select.appendChild(placeholder);
+          units.forEach(function(u) {
+              const opt = document.createElement("option");
+              opt.value = u;
+              opt.textContent = u;
+              if (u === current) opt.selected = true;
+              select.appendChild(opt);
+          });
+      }
+
+      function closeAllUnitDropdowns() {
+          document.querySelectorAll(".unit-dd-list.show").forEach(function(l) { l.classList.remove("show"); });
+          document.querySelectorAll(".unit-dd-btn.open").forEach(function(b) { b.classList.remove("open"); });
+      }
+
+      function enhanceUnitSelect(select) {
+          if (!select || select.dataset.enhanced) return;
+          buildUnitOptions(select);
+          select.dataset.enhanced = "1";
+          select.style.display = "none";
+
+          const wrap = document.createElement("div");
+          wrap.className = "unit-dd";
+          wrap.style.width = "24%";
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "unit-dd-btn";
+          const label = document.createElement("span");
+          label.className = "unit-dd-label";
+          btn.appendChild(label);
+          btn.insertAdjacentHTML("beforeend", '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>');
+
+          const list = document.createElement("div");
+          list.className = "unit-dd-list";
+
+          const CHECK = '<svg class="chk" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>';
+
+          function refresh() {
+              label.textContent = select.value ? (select.options[select.selectedIndex]?.textContent || select.value) : "Unit";
+              label.classList.toggle("placeholder", !select.value);
+              list.querySelectorAll(".unit-dd-item").forEach(function(item) {
+                  item.classList.toggle("selected", item.dataset.value === select.value);
+              });
+          }
+
+          Array.from(select.options).forEach(function(opt) {
+              const item = document.createElement("button");
+              item.type = "button";
+              item.className = "unit-dd-item";
+              item.dataset.value = opt.value;
+              item.innerHTML = "<span></span>" + CHECK;
+              item.firstChild.textContent = opt.textContent;
+              item.addEventListener("click", function(e) {
+                  e.stopPropagation();
+                  select.value = opt.value;
+                  select.dispatchEvent(new Event("change", { bubbles: true }));
+                  refresh();
+                  closeAllUnitDropdowns();
+              });
+              list.appendChild(item);
+          });
+
+          btn.addEventListener("click", function(e) {
+              e.stopPropagation();
+              const wasOpen = list.classList.contains("show");
+              closeAllUnitDropdowns();
+              if (wasOpen) return;
+              list.classList.remove("up");
+              list.classList.add("show");
+              btn.classList.add("open");
+              const lr = list.getBoundingClientRect();
+              const br = btn.getBoundingClientRect();
+              if (lr.bottom > window.innerHeight - 8 && br.top > lr.height + 16) {
+                  list.classList.add("up");
+              }
+              const sel = list.querySelector(".unit-dd-item.selected");
+              if (sel) sel.scrollIntoView({ block: "nearest" });
+          });
+
+          select.parentNode.insertBefore(wrap, select);
+          wrap.appendChild(btn);
+          wrap.appendChild(list);
+          wrap.appendChild(select);
+          refresh();
+      }
+
+      // ── Apply ONLY to mat_unit selects ──
+      document.addEventListener("click", closeAllUnitDropdowns);
+      document.addEventListener("keydown", function(e) {
+          if (e.key === "Escape") closeAllUnitDropdowns();
+      });
+
+      document.querySelectorAll(".mat-unit-select").forEach(enhanceUnitSelect);
+
+      // Quantity: digits only (works for existing and newly added rows)
+      const materialRowsBox = document.getElementById("material-rows");
+      if (materialRowsBox) {
+          materialRowsBox.addEventListener("input", function(e) {
+              if (e.target.name === "mat_qty") {
+                  e.target.value = e.target.value.replace(/\D/g, "");
+              }
+          });
+      }
+
+      updateMaterialControls();
+
+      const reportSaveForm = document.getElementById("report-save-form");
+      if (reportSaveForm) {
+          reportSaveForm.addEventListener("submit", function(event) {
+              const rows = Array.from(document.querySelectorAll("#material-rows .material-row"));
+              let completeRows = 0;
+              let incompleteRow = false;
+              rows.forEach(function(row) {
+                  const values = [
+                      row.querySelector('[name="mat_qty"]').value.trim(),
+                      row.querySelector('[name="mat_unit"]').value.trim(),
+                      row.querySelector('[name="mat_desc"]').value.trim(),
+                  ];
+                  if (values.every(Boolean)) completeRows += 1;
+                  else if (values.some(Boolean)) incompleteRow = true;
+              });
+
+              let error = "";
+              if (incompleteRow) {
+                  error = "Complete every started materials row or clear its fields.";
+              } else if (materialsAvailableCheckbox && !materialsAvailableCheckbox.checked && !completeRows) {
+                  error = "Add at least one complete materials row when Materials Available is unchecked.";
+              }
+
+              if (error) {
+                  event.preventDefault();
+                  if (materialsRequirementError) {
+                      materialsRequirementError.textContent = error;
+                      materialsRequirementError.classList.remove("hidden");
+                  }
+              } else if (materialsRequirementError) {
+                  materialsRequirementError.classList.add("hidden");
+              }
+          });
+      }
+
+      // ── Live Predicted Resolution Time (no save needed) ──
+      const PRIORITY_HOURS = JSON.parse(document.getElementById("priority-sla-hours").textContent);
+      const prioritySelect = document.getElementById("prioritySelect");
+      const predictedResolutionValue = document.getElementById("predictedResolutionValue");
+      if (prioritySelect && predictedResolutionValue) {
+          function updatePredictedResolution() {
+              const hours = PRIORITY_HOURS[prioritySelect.value];
+              predictedResolutionValue.textContent = hours ? `${hours} hours` : "Assign a priority to calculate";
+          }
+          prioritySelect.addEventListener("change", updatePredictedResolution);
+          updatePredictedResolution();
+      }
+
+      // ── Prevent future Date and Time Completed ──
+      const accomplishedAtInput = document.getElementById("accomplishedAtInput");
+      if (accomplishedAtInput) {
+          const accomplishedAtForm = accomplishedAtInput.closest("form");
+          const accomplishedAtError = document.getElementById("accomplishedAtError");
+          accomplishedAtForm.addEventListener("submit", function(e) {
+              if (!accomplishedAtInput.value) return;
+              const selected = new Date(accomplishedAtInput.value);
+              const minValue = accomplishedAtInput.min ? new Date(accomplishedAtInput.min) : null;
+              let errorMsg = "";
+              if (selected > new Date()) {
+                  errorMsg = "Date and Time Completed cannot be in the future.";
+              } else if (minValue && selected < minValue) {
+                  errorMsg = "Date and Time Completed cannot be earlier than the Date In Progress.";
+              }
+              if (errorMsg) {
+                  e.preventDefault();
+                  accomplishedAtError.textContent = errorMsg;
+                  accomplishedAtError.classList.remove("hidden");
+                  accomplishedAtInput.focus();
+              } else {
+                  accomplishedAtError.classList.add("hidden");
+                  if (accomplishedAtForm.dataset.confirmed !== "1") {
+                      e.preventDefault();
+                      openResolveConfirm(accomplishedAtForm);
+                  }
+              }
+          });
+      }
+
+      // ── Job Order PDF export modal ──
+      function exportJobOrder() {
+          const overlay = document.createElement("div");
+          overlay.id = "job-order-overlay";
+          overlay.className = "fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-4";
+          overlay.onclick = function(e) {
+              if (e.target === overlay) {
+                  closeJobOrder();
+              }
+          };
+
+          overlay.innerHTML = `
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl h-[90vh] flex flex-col overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
+            <h2 class="text-sm font-bold text-gray-900">Job Order Form — {{ report.job_order_id }}</h2>
+            <button type="button" onclick="closeJobOrder()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <iframe src="{% url 'exportJobOrderPDFAdmin' report.id %}" class="flex-1 w-full border-0"></iframe>
+        </div>
+      `;
+
+          document.body.appendChild(overlay);
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+      }
+
+      function closeJobOrder() {
+          const overlay = document.getElementById("job-order-overlay");
+          if (overlay) {
+              overlay.remove();
+          }
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+      }
+
+      // ── Mark Resolved confirmation ──
+      let resolveConfirmForm = null;
+
+      function openResolveConfirm(form) {
+          const modal = document.getElementById("resolve-confirm-modal");
+          if (!modal) {
+              form.dataset.confirmed = "1";
+              form.submit();
+              return;
+          }
+          resolveConfirmForm = form;
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+          document.body.style.overflow = "hidden";
+          document.getElementById("resolve-confirm-cancel").focus();
+      }
+
+      function closeResolveConfirm() {
+          const modal = document.getElementById("resolve-confirm-modal");
+          if (!modal) return;
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+          document.body.style.overflow = "";
+          resolveConfirmForm = null;
+      }
+
+      (function () {
+          const modal = document.getElementById("resolve-confirm-modal");
+          if (!modal) return;
+          const okBtn = document.getElementById("resolve-confirm-ok");
+          document.getElementById("resolve-confirm-cancel").addEventListener("click", closeResolveConfirm);
+          modal.addEventListener("click", function (e) {
+              if (e.target === modal) closeResolveConfirm();
+          });
+          document.addEventListener("keydown", function (e) {
+              if (e.key === "Escape" && !modal.classList.contains("hidden")) closeResolveConfirm();
+          });
+          okBtn.addEventListener("click", function () {
+              if (!resolveConfirmForm) return;
+              okBtn.disabled = true;
+              okBtn.textContent = "Saving...";
+              resolveConfirmForm.dataset.confirmed = "1";
+              resolveConfirmForm.submit();
+          });
+      })();
+  </script>
+{% endblock %}

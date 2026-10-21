@@ -1,0 +1,52 @@
+/*
+ * Shared styles for the Privacy Policy and Terms of Service text.
+ * Markup: accounts/components/policy_text.html (wrap it in .fc-policy-box)
+ * Used by: privacypolicy.html (full page) and signup.html (dialog).
+ */
+
+.fc-policy-box {
+    background-color: #f8faff;
+    border: 1px solid #e5edf7;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.fc-policy-box h3 {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #173b5c;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.fc-policy-box h3:first-child {
+    margin-top: 0;
+}
+
+.fc-policy-box h2 {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #0f4c81;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.fc-policy-box h2:first-child {
+    margin-top: 0;
+}
+
+.fc-policy-box p,
+.fc-policy-box li {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #526277;
+    margin-bottom: 0.5rem;
+    text-align: justify !important;
+    text-justify: inter-word;
+}
+
+.fc-policy-box ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 0.75rem;
+}

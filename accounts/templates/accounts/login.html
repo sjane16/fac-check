@@ -1,0 +1,187 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fac-Check Login</title>
+    <script src="{% static 'user/js/theme.js' %}"></script>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/auth_dark.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts/css/login_story.css' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap"
+          rel="stylesheet" />
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'accounts/images/Fac-Check-Logo.png' %}?v=2" />
+    <link rel="stylesheet" href="{% static 'submission-state.css' %}">
+    <script src="{% static 'submission-state.js' %}" defer></script>
+  </head>
+  <body class="min-h-dvh bg-white font-poppins text-gray-900 antialiased">
+    <main class="grid min-h-dvh lg:grid-cols-2">
+      <!-- Full-panel geometry with abstract campus edges and an emphasized brand mark. -->
+      <aside class="fc-login-story" aria-label="A better campus starts with you">
+        <svg class="fc-login-geometry" viewBox="0 0 180 220" preserveAspectRatio="xMidYMid slice" fill="none" aria-hidden="true" focusable="false">
+          <!-- Continuous architectural fragments, not a literal campus map. -->
+          <g stroke="#b9dcf5" stroke-width=".32" stroke-linejoin="miter" transform="translate(6 -6)">
+            <!-- Cropped roof planes share the pattern's diagonal axes. -->
+            <g opacity=".13">
+              <path d="M-25 41 41 1 107 41V119L173 159V239M-25 83 41 43 107 83 173 43 239 83" />
+              <path d="M-25 125 41 85 107 125 173 85 239 125M-25 167 41 127 107 167 173 127 239 167" />
+              <path d="M-25 209 41 169 107 209 173 169 239 209M8-30V240M41-30V240M140-30V240M173-30V240" />
+              <path d="M-25 6 173 126V-30M-25 48 173 168M-25 90 173 210M-25 132 173 252" />
+            </g>
+            <!-- Paired edges hint at corridors and recessed building wings. -->
+            <g opacity=".10">
+              <path d="M-25 88 41 48 107 88 173 48 205 67M-25 172 41 132 107 172 173 132 205 151" />
+              <path d="M13-20V43L41 60M145-20V64L173 81M13 142V211L41 228M145 148V217L173 234" />
+              <path d="M16 30 35 19 61 35 42 46ZM119 145 135 135 159 149 143 159Z" />
+            </g>
+            <!-- Construction lines continue the logo edges at their exact slopes. -->
+            <g opacity=".15">
+              <path d="M-20 107.125 41 69M73 49V-30M73 171V240M73 171 153 214.076923M53 89-20 130.714286M60 85 119 51.285714V-30" />
+              <path d="M79-30V56M114 77 180 116.6M114 94 180 133M92-30V81M107 104 180 142.933333M107 119 180 157.933333" />
+              <path d="M92 148V240M79 140-20 79.076923M136 126 180 79.191489M89 176 153 233.6M121 126 180 70.6875M136 126H180" />
+            </g>
+            <!-- Brighter, slightly stronger logo contours stand above the architectural lines. -->
+            <g stroke="#d8eeff" stroke-width=".44" opacity=".55">
+              <path d="M41 69 73 49V171L60 164V85L53 89V158L41 151V111Z" />
+              <path d="M79 56 114 77V94L92 81V96L107 104V119L92 111V148L79 140V96Z" />
+              <path d="M79 147 89 156 121 126H136L89 176 79 167Z" />
+            </g>
+          </g>
+        </svg>
+        <p class="fc-login-tagline">A better campus starts with you.</p>
+      </aside>
+      <!-- Right: sign-in form -->
+      <section class="flex flex-col px-6 py-6 sm:px-10"
+               aria-labelledby="login-title">
+        <a href="{% url 'index' %}" class="fc-login-return">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false">
+            <path d="m14 7-5 5 5 5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Back to home
+        </a>
+        <form method="post"
+              action="{% url 'login' %}"
+              class="m-auto w-full max-w-sm py-8">
+          {% csrf_token %}
+          <a href="{% url 'index' %}" class="fc-login-logo-link" aria-label="Fac-Check home">
+            <img src="{% static 'accounts/images/Fac-Check-Logo.png' %}?v=2"
+                 width="45" height="54" alt="Fac-Check" />
+          </a>
+          <h1 id="login-title"
+              class="text-3xl font-bold tracking-tight text-[#0F4C81] dark:text-[#e4e6eb]">Welcome back</h1>
+          <p class="mt-2 text-sm text-gray-600">Sign in with your registered email.</p>
+          {% if messages %}
+            <div class="mt-6 space-y-3">
+              {% for message in messages %}
+                {% if message.tags == 'error' %}
+                  <p role="alert"
+                     class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">{{ message }}</p>
+                {% else %}
+                  <p role="status"
+                     class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm font-medium text-green-800">{{ message }}</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+          {{ form.website }}
+          <div class="fc-login-fields mt-8">
+            <label for="{{ form.email.id_for_label }}"
+                   class="mb-1.5 block text-sm font-semibold text-gray-800">Email address</label>
+            <div class="flex min-h-12 items-center rounded-xl border border-gray-300 bg-gray-50 px-3 focus-within:border-[#0F4C81] focus-within:ring-3 focus-within:ring-[#0F4C81]/15 dark:focus-within:border-[#7db4ff] dark:focus-within:ring-[#7db4ff]/20 [&_input]:text-base sm:[&_input]:text-sm">
+              {{ form.email }}
+            </div>
+          </div>
+          <div class="mt-5">
+            <label for="{{ form.password.id_for_label }}"
+                   class="mb-1.5 block text-sm font-semibold text-gray-800">Password</label>
+            <div class="flex min-h-12 items-center rounded-xl border border-gray-300 bg-gray-50 pl-3 pr-1 focus-within:border-[#0F4C81] focus-within:ring-3 focus-within:ring-[#0F4C81]/15 dark:focus-within:border-[#7db4ff] dark:focus-within:ring-[#7db4ff]/20 [&_input]:text-base sm:[&_input]:text-sm">
+              {{ form.password }}
+              <button type="button"
+                      id="eye_toggle_btn"
+                      aria-label="Show password"
+                      aria-pressed="false"
+                      class="grid size-11 shrink-0 place-items-center text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.5"
+                     stroke="currentColor"
+                     class="size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.5"
+                     stroke="currentColor"
+                     class="hidden size-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+              </button>
+            </div>
+            <p class="mt-1 text-right">
+              <a href="{% url 'forgot_password' %}"
+                 class="inline-flex min-h-11 items-center text-sm text-blue-600 hover:underline">Forgot password?</a>
+            </p>
+          </div>
+          <button type="submit"
+                  class="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#0F4C81] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0d3f6b] dark:bg-[#2f5fbf] dark:hover:bg-[#3b6bcf]">
+            Sign in
+          </button>
+          <div class="my-5 flex items-center gap-3 text-sm text-gray-600"
+               role="separator">
+            <span class="h-px flex-1 bg-gray-200"></span>
+            or
+            <span class="h-px flex-1 bg-gray-200"></span>
+          </div>
+          <button type="button"
+                  data-passkey-action="login"
+                  data-options-url="{% url 'passkey_login_options' %}"
+                  data-verify-url="{% url 'passkey_login_verify' %}"
+                  title="Use your fingerprint, face, or screen lock"
+                  class="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60">
+            <svg class="size-5"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.6"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33" />
+            </svg>
+            Sign in with a passkey
+          </button>
+          
+          <p id="passkey-login-message"
+             role="status"
+             class="mt-3 hidden rounded-xl border px-4 py-2.5 text-xs font-medium"></p>
+          <p class="fc-login-signup mt-8 text-center text-sm text-gray-600">
+            Don't have an account?
+            <a href="{% url 'signup' %}"
+               class="font-semibold text-blue-600 hover:underline">Create account</a>
+          </p>
+        </form>
+        <footer class="text-center text-xs text-gray-600">
+          <p>© 2026 Fac-Check. All rights reserved.</p>
+        </footer>
+      </section>
+    </main>
+    <script src="{% static 'accounts/js/passkeys.js' %}"></script>
+    <script>
+      const passwordInput = document.getElementById("login_password");
+      const toggleButton = document.getElementById("eye_toggle_btn");
+
+      toggleButton.addEventListener("click", () => {
+        const show = passwordInput.type === "password";
+        passwordInput.type = show ? "text" : "password";
+        toggleButton.setAttribute("aria-pressed", String(show));
+        toggleButton.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        toggleButton.querySelectorAll("svg").forEach((icon) => icon.classList.toggle("hidden"));
+      });
+    </script>
+  </body>
+</html>

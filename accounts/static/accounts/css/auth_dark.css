@@ -1,0 +1,366 @@
+/*
+ * Dark mode for the accounts/ pages (login, signup, OTP, password reset,
+ * privacy policy). These pages use their own inline CSS with hardcoded colors,
+ * so the Tailwind-variable dark mode in theme/static_src/src/styles.css does
+ * not reach them. This file re-colors those custom classes.
+ *
+ * Needs user/js/theme.js in <head> (it sets <html class="dark">).
+ * Palette matches styles.css: page #18191a, card #242526, raised #2c2d2f,
+ * borders #3e4042 / #4e5052, text #e4e6eb / #b0b3b8, accent #7db4ff.
+ * Specificity: every rule starts with html.dark, so it wins over the inline
+ * <style> blocks no matter which comes first.
+ */
+
+html.dark {
+  color-scheme: dark;
+  --fc-blue: #7db4ff;
+  --fc-grid-line: rgba(125, 180, 255, 0.07);
+}
+
+/* ---- Page background -------------------------------------------------- */
+html.dark body {
+  background-color: #18191a;
+  background-image: radial-gradient(ellipse 80% 55% at 50% -10%, rgba(59, 130, 246, 0.16), transparent 60%);
+  color: #e4e6eb;
+}
+html.dark body.fc-login-page,
+html.dark body.fc-signup-page,
+html.dark body.fc-policy-page {
+  background: #18191a;
+  color: #e4e6eb;
+}
+html.dark .fc-login-background path,
+html.dark .fc-signup-background path,
+html.dark .fc-policy-background path {
+  stroke: #2a2c2e;
+}
+html.dark .fc-blob {
+  opacity: 0.25;
+}
+
+/* ---- Cards ------------------------------------------------------------ */
+html.dark .fc-login-card,
+html.dark .fc-signup-card,
+html.dark .fc-policy-card {
+  background: #242526;
+  border-color: transparent;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+html.dark .fc-dialog {
+  background: #2c2d2f;
+  border-color: #3e4042;
+  color: #e4e6eb;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+html.dark .fc-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+html.dark .fc-dialog h2 {
+  color: #7db4ff;
+}
+html.dark .fc-dialog p {
+  color: #b0b3b8;
+}
+
+/* ---- Logo tile and headings ------------------------------------------- */
+html.dark .fc-login-logo,
+html.dark .fc-signup-logo,
+html.dark .fc-policy-logo,
+html.dark .fc-forgot-icon,
+html.dark .fc-reset-icon {
+  background: #193157;
+}
+html.dark .fc-signup-logo svg,
+html.dark .fc-forgot-icon svg,
+html.dark .fc-reset-icon svg {
+  stroke: #7db4ff;
+}
+html.dark .fc-login-heading h1,
+html.dark .fc-signup-heading h1,
+html.dark .fc-policy-heading h1,
+html.dark .fc-signup-card section > h2 {
+  color: #7db4ff;
+}
+html.dark .fc-login-heading p,
+html.dark .fc-signup-heading p,
+html.dark .fc-policy-heading p,
+html.dark .fc-step-description,
+html.dark .fc-login-help,
+html.dark .fc-signup-help,
+html.dark .fc-login-footer,
+html.dark .fc-signup-footer,
+html.dark .fc-policy-footer {
+  color: #b0b3b8;
+}
+html.dark .fc-signup-heading p strong {
+  color: #e4e6eb;
+}
+html.dark .fc-login-card label,
+html.dark .fc-signup-card label {
+  color: #e4e6eb;
+}
+
+/* ---- Links ------------------------------------------------------------ */
+html.dark .fc-login-card a,
+html.dark .fc-signup-card a,
+html.dark .fc-policy-card a,
+html.dark .fc-login-footer a,
+html.dark .fc-signup-home-link,
+html.dark .fc-signup-footer a,
+html.dark .fc-policy-footer a,
+html.dark .fc-back-link,
+html.dark .fc-text-action,
+html.dark .fc-signup-help a {
+  color: #7db4ff;
+}
+
+/* ---- Fields ----------------------------------------------------------- */
+html.dark .fc-login-field,
+html.dark .fc-signup-field {
+  background: #18191a;
+  border-color: #4e5052;
+}
+html.dark .fc-login-field:focus-within,
+html.dark .fc-signup-field:focus-within {
+  border-color: #7db4ff;
+  box-shadow: 0 0 0 3px rgba(125, 180, 255, 0.18);
+}
+html.dark .fc-login-field input,
+html.dark .fc-signup-field input,
+html.dark .fc-signup-field select {
+  color: #e4e6eb;
+}
+html.dark .fc-login-field svg,
+html.dark .fc-signup-field svg {
+  color: #96999e;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #96999e;
+  opacity: 1;
+}
+html.dark select option {
+  background: #242526;
+  color: #e4e6eb;
+}
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark .fc-login-field input:-webkit-autofill,
+html.dark .fc-signup-field input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #18191a inset;
+  box-shadow: 0 0 0 1000px #18191a inset;
+  -webkit-text-fill-color: #e4e6eb;
+  caret-color: #e4e6eb;
+}
+
+/* ---- Buttons ---------------------------------------------------------- */
+html.dark .fc-login-primary,
+html.dark .fc-signup-primary {
+  background: var(--fc-brand, #24639b);
+  border-color: var(--fc-brand, #24639b);
+  color: #fff;
+  box-shadow: none;
+}
+html.dark .fc-login-primary:hover,
+html.dark .fc-signup-primary:hover {
+  background: var(--fc-brand-hover, #2b70ad);
+}
+html.dark .fc-login-passkey {
+  background: transparent;
+  color: #e4e6eb;
+  border-color: #4e5052;
+}
+html.dark .fc-login-passkey:hover {
+  background: #2c2d2f;
+}
+html.dark .fc-login-page a:focus-visible,
+html.dark .fc-login-page button:focus-visible,
+html.dark .fc-signup-page a:focus-visible,
+html.dark .fc-signup-page button:focus-visible,
+html.dark .fc-policy-page a:focus-visible,
+html.dark .fc-policy-page button:focus-visible,
+html.dark .fc-policy-page input:focus-visible {
+  outline-color: #7db4ff;
+}
+
+/* ---- OTP pages: alerts and code boxes --------------------------------- */
+html.dark .fc-alert-error {
+  background: #431514;
+  border-color: #a63430;
+  color: #fca5a5;
+}
+html.dark .fc-alert-success {
+  background: #183f26;
+  border-color: #3b9b5e;
+  color: #86efac;
+}
+html.dark .fc-otp-box {
+  background: #18191a;
+  border-color: #4e5052;
+  color: #e4e6eb;
+}
+html.dark .fc-otp-box:focus {
+  background: #242526;
+  border-color: #7db4ff;
+  box-shadow: 0 0 0 3px rgba(125, 180, 255, 0.18);
+}
+html.dark .fc-otp.has-error .fc-otp-box {
+  border-color: #f87171;
+}
+html.dark .fc-otp-error {
+  color: #f87171;
+}
+
+/* ---- Signup progress (signup_progress.css) ---------------------------- */
+html.dark .fc-signup-progress li {
+  color: #b0b3b8;
+}
+html.dark .fc-signup-progress li:not(:last-child)::after {
+  background: #4e5052;
+}
+html.dark .fc-signup-progress li.is-complete:not(:last-child)::after {
+  background: #3b9b5e;
+}
+html.dark .fc-step-number {
+  background: #242526;
+  border-color: #4e5052;
+}
+html.dark .fc-signup-progress [aria-current="step"] {
+  color: #7db4ff;
+}
+html.dark .fc-signup-progress [aria-current="step"] .fc-step-number {
+  background: var(--fc-brand, #24639b);
+  border-color: var(--fc-brand, #24639b);
+  color: #fff;
+}
+html.dark .fc-signup-progress .is-complete {
+  color: #86efac;
+}
+html.dark .fc-signup-progress .is-complete .fc-step-number {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+/* ---- Privacy policy text box ------------------------------------------ */
+html.dark .fc-policy-box {
+  background: #18191a;
+  border-color: #3e4042;
+}
+html.dark .fc-policy-box h3 {
+  color: #e4e6eb;
+}
+html.dark .fc-policy-box h2 {
+  color: #7db4ff;
+}
+html.dark .fc-policy-box p,
+html.dark .fc-policy-box li {
+  color: #b0b3b8;
+}
+html.dark .fc-policy-box strong {
+  color: #e4e6eb;
+}
+html.dark .fc-policy-box hr {
+  border-color: #3e4042;
+}
+
+/* ---- Tailwind slate utilities used on these pages ---------------------
+   The shared dark palette remaps gray/red/green/blue but not slate. */
+html.dark .text-black,
+html.dark .text-slate-600,
+html.dark .text-slate-700,
+html.dark .text-slate-800 {
+  color: #e4e6eb;
+}
+html.dark .text-slate-500 {
+  color: #b0b3b8;
+}
+html.dark .text-slate-400 {
+  color: #96999e;
+}
+html.dark .bg-slate-50 {
+  background-color: #18191a;
+}
+html.dark .border-slate-500 {
+  border-color: #4e5052;
+}
+html.dark .focus-within\:ring-purple-100:focus-within {
+  --tw-ring-color: rgba(125, 180, 255, 0.25);
+}
+html.dark .bg-red-50 {
+  background-color: #431514;
+}
+html.dark .border-red-200 {
+  border-color: #772522;
+}
+
+/* Login mascot panel (Checky bubble, steps, eyebrow) */
+html.dark .fc-login-eyebrow { color: #b0b3b8; }
+html.dark .fc-login-bubble {
+  background: #2c2d2f;
+  border-color: #3e4042;
+  color: #e4e6eb;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+}
+html.dark .fc-login-bubble::after {
+  background: #2c2d2f;
+  border-color: #3e4042;
+}
+html.dark .fc-login-steps li { color: #e4e6eb; }
+html.dark .fc-login-steps li::before { background: var(--fc-brand, #24639b); }
+html.dark .fc-login-form-panel > .fc-login-card {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+html.dark .fc-login-brand,
+html.dark .fc-login-heading h1 {
+  color: #e4e6eb;
+}
+html.dark .fc-login-home { color: #b0b3b8; }
+html.dark .fc-login-mascot {
+  background: linear-gradient(150deg, #193157, #242526 80%);
+}
+
+/* Login: flat form panel. The body's radial glow otherwise bleeds in at the seam. */
+html.dark main > section[aria-labelledby="login-title"] { background: #18191a; }
+
+/* Login: deeper brand panel so it doesn't outshine the form side. */
+html.dark .fc-login-story { background: #0b3a64; }
+
+/* Login: Back to home — neutral text, dark hover, visible focus ring. */
+html.dark .fc-login-return { color: #b0b3b8; }
+html.dark .fc-login-return:hover { color: #e4e6eb; }
+html.dark .fc-login-logo-link:focus-visible,
+html.dark .fc-login-return:focus-visible { outline-color: #7db4ff; }
+
+html.dark .fc-login-tagline {
+  color: #e4e6eb;
+}
+
+/* Match application field focus rings. Composite fields own the ring so
+   their transparent inputs and dropdown buttons do not draw a second one. */
+html:not(.fc-app) {
+  --fc-focus-color: #0f4c81;
+}
+html.dark:not(.fc-app) {
+  --fc-focus-color: #91bfe8;
+}
+html:not(.fc-app) :is(
+  .fc-login-field,
+  .fc-signup-field,
+  .focus-within\:ring-2,
+  .focus-within\:ring-3
+):not(.invalid):not(:has([aria-invalid="true"], .invalid)):focus-within,
+html:not(.fc-app) .cdd:not(.invalid):not(.cdd-transparent) .cdd-btn:not(:disabled):not(.locked):is(:focus, .open),
+html:not(.fc-app) .fc-otp:not(.has-error) .fc-otp-box:not([aria-invalid="true"]):focus {
+  outline: none;
+  border-color: var(--fc-focus-color);
+  box-shadow: 0 0 0 2px var(--fc-focus-color);
+}
+
+/* The field wrapper already draws the focus ring, so the dropdown button
+   inside it must not add its own outline on keyboard (Tab) focus. */
+html:not(.fc-app) :is(.fc-login-field, .fc-signup-field) .cdd-btn:focus-visible {
+  outline: none;
+}

@@ -1,0 +1,161 @@
+/* Fac-Check Custom Dropdown (CDD) v1
+   Hango sa .unit-dd-* ng report_detail.html (Unit dropdown).
+   Opt-in: <select data-cdd> */
+.cdd {
+  position: relative;
+  width: 100%;
+}
+
+.cdd > select[data-cdd-enhanced] {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.cdd-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #374151;
+  text-align: left;
+  cursor: pointer;
+}
+.cdd-btn:focus,
+.cdd-btn.open {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+.cdd-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+.cdd-btn:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+.cdd-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cdd-label.placeholder {
+  color: #9ca3af;
+}
+
+.cdd-list {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  width: max-content;
+  min-width: max(100%, 9rem);
+  max-width: min(24rem, calc(100vw - 32px));
+  max-height: 14rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+}
+.cdd-list.show {
+  display: block;
+}
+.cdd-list.up {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+.cdd-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #374151;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.cdd-item:hover,
+.cdd-item.active {
+  background: #2563eb;
+  color: #fff;
+}
+.cdd-item.selected {
+  font-weight: 600;
+}
+.cdd-item .chk {
+  visibility: hidden;
+  width: 16px;
+  height: 16px;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+.cdd-item.selected .chk {
+  visibility: visible;
+}
+.cdd-item:hover .chk,
+.cdd-item.active .chk {
+  color: #fff;
+}
+.cdd-item[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.cdd-item[aria-disabled="true"]:hover {
+  background: transparent;
+  color: #374151;
+}
+
+/* States */
+.cdd.invalid .cdd-btn {
+  border-color: #ef4444;
+}
+.cdd.invalid .cdd-btn:focus,
+.cdd.invalid .cdd-btn.open {
+  box-shadow: 0 0 0 2px #fca5a5;
+}
+
+/* Sizes / variants (gagamitin sa Phase 3 at 4) */
+.cdd-lg .cdd-btn {
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+.cdd-transparent .cdd-btn {
+  background: transparent;
+  border-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+.cdd-transparent .cdd-btn:focus,
+.cdd-transparent .cdd-btn.open {
+  box-shadow: none;
+}

@@ -1,0 +1,878 @@
+﻿{% extends "user/layouts/base.html" %}
+{% block title %}Report Issue{% endblock %}
+{% block content %}
+  <style>
+      .reported-issue-desktop-view {
+          display: none;
+      }
+
+      @media (min-width: 1024px) {
+          .reported-issue-mobile-view {
+              display: none;
+          }
+
+          .reported-issue-desktop-view {
+              display: block;
+          }
+      }
+  </style>
+  <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-24 lg:pb-10 w-full">
+    <!-- Back button -->
+    <a href="{% url 'userReports' %}"
+       class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4 lg:mb-6 transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="w-4 h-4"
+           fill="none"
+           viewBox="0 0 24 24"
+           stroke-width="2"
+           stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+      Back to Reports
+    </a>
+    <!-- Card -->
+    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-3 px-4 py-3 lg:px-6 lg:py-5 border-b border-gray-100">
+        <div class="flex items-center flex-nowrap gap-1.5 lg:gap-2 overflow-x-auto mt-2 lg:mt-0">
+          <h1 class="text-sm lg:text-base font-bold text-gray-900 whitespace-nowrap">Report Details</h1>
+          <span class="text-[10px] lg:text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full whitespace-nowrap">{{ report.job_order_id }}</span>
+          {% if report.status == 'pending' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% elif report.status == 'in_progress' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% elif report.status == 'resolved' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-green-50 text-green-700 border border-green-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% elif report.status == 'closed' %}
+            <span class="inline-flex items-center gap-1 lg:gap-1.5 text-[10px] lg:text-xs font-semibold px-2 py-0.5 lg:px-2.5 lg:py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+              {{ report.get_status_display }}
+            </span>
+          {% endif %}
+        </div>
+        {% if report.status == 'closed' and report.survey_method == 'manual' and report.survey.scan_file %}
+          <a href="{{ report.survey.scan_file.url }}" target="_blank" rel="noopener"
+             class="ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 lg:py-2 rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-600 hover:bg-blue-100 active:bg-blue-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 3.75h6v6m-.75-5.25-8.25 8.25M19.5 13.5v5.25A2.25 2.25 0 0 1 17.25 21h-12A2.25 2.25 0 0 1 3 18.75v-12A2.25 2.25 0 0 1 5.25 4.5H10.5" />
+            </svg>
+            View Scanned Job Order
+          </a>
+        {% elif report.status == 'in_progress' or report.status == 'resolved' or report.status == 'closed' %}
+          <button type="button"
+                  onclick="exportJobOrder()"
+                  class="ml-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 lg:py-2 rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-600 hover:bg-blue-100 active:bg-blue-100 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="w-4 h-4"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke-width="2"
+               stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Export
+          </button>
+        {% endif %}
+      </div>
+      <!-- Body: two panels -->
+      <div class="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-gray-100">
+        <!-- LEFT PANEL -->
+        <div class="w-full lg:w-80 shrink-0 p-5 lg:p-6 flex flex-col gap-5">
+          <!-- Photo(s) -->
+          <div>
+            {% if report.completion_photo %}
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Submitted Photo</p>
+                  {% if report.photo %}
+                    <img src="{{ report.photo.url }}"
+                         alt="Submitted Photo"
+                         onclick="openImageLightbox('{{ report.photo.url }}')"
+                         class="block w-full h-36 object-cover rounded-xl bg-gray-100 cursor-pointer" />
+                  {% else %}
+                    <div class="w-full h-36 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+                           class="w-8 h-8"
+                           fill="none"
+                           viewBox="0 0 24 24"
+                           stroke-width="1.5"
+                           stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 18h16.5M3 9.75h18" />
+                      </svg>
+                    </div>
+                  {% endif %}
+                </div>
+                <div>
+                  <p class="text-[10px] font-semibold text-green-600 uppercase tracking-wide mb-1.5">Completion Photo</p>
+                  <img src="{{ report.completion_photo.url }}"
+                       alt="Completion Photo"
+                       onclick="openImageLightbox('{{ report.completion_photo.url }}')"
+                       class="block w-full h-36 object-cover rounded-xl bg-gray-100 cursor-pointer" />
+                </div>
+              </div>
+            {% elif report.photo %}
+              <img src="{{ report.photo.url }}"
+                   alt="Report Photo"
+                   onclick="openImageLightbox('{{ report.photo.url }}')"
+                   class="w-full h-52 object-cover rounded-xl bg-gray-100 cursor-pointer" />
+            {% else %}
+              <div class="w-full h-52 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-10 h-10"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.5"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 18h16.5M3 9.75h18" />
+                </svg>
+              </div>
+            {% endif %}
+          </div>
+          <!-- Details meta box -->
+          <div class="bg-gray-50 rounded-2xl p-4 space-y-3">
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Location</p>
+                <p class="text-sm font-semibold text-gray-800">{{ report.location }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Category</p>
+                <p class="text-sm font-semibold text-gray-800">{{ report.get_category_display }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke-width="1.6"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3.75 8.25h16.5M4.5 6.75h15A1.5 1.5 0 0 1 21 8.25v10.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.75V8.25a1.5 1.5 0 0 1 1.5-1.5Z" />
+              </svg>
+              <div>
+                <p class="text-xs text-gray-400">Date Submitted</p>
+                <p class="text-sm font-semibold text-gray-800">{{ report.submitted_at|date:"M d, Y - h:i A" }}</p>
+              </div>
+            </div>
+            {% if report.status == 'resolved' or report.status == 'closed' %}
+              <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.6"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-400">Date Accomplished</p>
+                  <p class="text-sm font-semibold text-gray-800">
+                    {% if report.accomplished_at %}{{ report.accomplished_at|date:"M d, Y - h:i A" }}{% else %}—{% endif %}
+                  </p>
+                </div>
+              </div>
+            {% endif %}
+            {% if report.priority %}
+              <div class="flex items-start gap-3 pt-3 border-t border-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.6"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m9-9H3" />
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-400 mb-1.5">Priority</p>
+                  {% if report.priority == 'critical' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">Critical / Urgent</span>
+                  {% elif report.priority == 'high' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-orange-200">High Priority</span>
+                  {% elif report.priority == 'standard' %}
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">Standard</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <!-- RIGHT PANEL -->
+        <div class="flex-1 p-5 lg:p-6 space-y-6">
+          <!-- Description -->
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Description</p>
+            <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed italic">
+              {{ report.description|default:"No description provided." }}
+            </div>
+          </div>
+          {% if report.status == 'pending' %}
+            <div class="grid grid-cols-2 gap-4">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Inventory Tag No.</p>
+                <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed break-words min-w-0">
+                  {{ report.inventory_tag_no|default:"N/A" }}
+                </div>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Property Inventory No.</p>
+                <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed break-words min-w-0">
+                  {{ report.property_inventory_no|default:"N/A" }}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+          {% if report.findings %}
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Findings</p>
+              <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed italic">{{ report.findings }}</div>
+            </div>
+          {% endif %}
+          {% if report.recommendation %}
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Recommendation</p>
+              <div class="bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed italic">
+                {{ report.recommendation }}
+              </div>
+            </div>
+          {% endif %}
+          {% if report.assigned_personnel_summary %}
+            <div>
+              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">MED Personnel</p>
+              <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                {% for personnel in report.assigned_personnel_data %}
+                  {% if personnel.name %}<li>{{ personnel.name }}</li>{% endif %}
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          <!-- Progress -->
+          <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-5">Progress</p>
+            <div class="overflow-x-auto pb-2">
+              <div class="relative min-w-[420px] pt-2 pb-2">
+                <div class="absolute top-6 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200"></div>
+                {% if report.status == 'in_progress' %}
+                  <div class="absolute top-6 left-[12.5%] w-[25%] h-0.5 bg-blue-600"></div>
+                {% elif report.status == 'resolved' %}
+                  <div class="absolute top-6 left-[12.5%] w-[50%] h-0.5 bg-blue-600"></div>
+                {% elif report.status == 'closed' %}
+                  <div class="absolute top-6 left-[12.5%] right-[12.5%] h-0.5 bg-blue-600"></div>
+                {% endif %}
+                <div class="relative grid grid-cols-4 text-center">
+                  <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+                           class="w-5 h-5"
+                           fill="none"
+                           viewBox="0 0 24 24"
+                           stroke-width="2.5"
+                           stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                    </div>
+                    <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">Pending</p>
+                    <p class="mt-1 text-[10px] text-gray-400">{{ report.submitted_at|date:"M d, Y" }}</p>
+                    <p class="text-[10px] text-gray-300">{{ report.submitted_at|date:"h:i A" }}</p>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shadow-sm {% if report.status == 'in_progress' or report.status == 'resolved' or report.status == 'closed' %}bg-blue-600 text-white{% else %}bg-white border-4 border-gray-300{% endif %}">
+                      {% if report.status == 'in_progress' or report.status == 'resolved' or report.status == 'closed' %}
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-5 h-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2.5"
+                             stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      {% endif %}
+                    </div>
+                    <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">In Progress</p>
+                    {% if report.in_progress_at %}
+                      <p class="mt-1 text-[10px] text-gray-400">{{ report.in_progress_at|date:"M d, Y" }}</p>
+                      <p class="text-[10px] text-gray-300">{{ report.in_progress_at|date:"h:i A" }}</p>
+                    {% else %}
+                      <p class="mt-1 text-[10px] text-gray-400">-</p>
+                    {% endif %}
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shadow-sm {% if report.status == 'resolved' or report.status == 'closed' %}bg-blue-600 text-white{% else %}bg-white border-4 border-gray-300{% endif %}">
+                      {% if report.status == 'resolved' or report.status == 'closed' %}
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-5 h-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2.5"
+                             stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      {% endif %}
+                    </div>
+                    <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">Resolved</p>
+                    {% if report.accomplished_at %}
+                      <p class="mt-1 text-[10px] text-gray-400">{{ report.accomplished_at|date:"M d, Y" }}</p>
+                      <p class="text-[10px] text-gray-300">{{ report.accomplished_at|date:"h:i A" }}</p>
+                    {% else %}
+                      <p class="mt-1 text-[10px] text-gray-400">-</p>
+                    {% endif %}
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shadow-sm {% if report.status == 'closed' %}bg-blue-600 text-white{% else %}bg-white border-4 border-gray-300{% endif %}">
+                      {% if report.status == 'closed' %}
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-5 h-5"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2.5"
+                             stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                      {% endif %}
+                    </div>
+                    <p class="mt-3 text-[10px] font-bold text-gray-900 uppercase">Closed</p>
+                    {% if report.status == 'closed' %}
+                      {% if report.closed_at %}
+                        <p class="mt-1 text-[10px] text-gray-400">{{ report.closed_at|date:"M d, Y" }}</p>
+                        <p class="text-[10px] text-gray-300">{{ report.closed_at|date:"h:i A" }}</p>
+                      {% else %}
+                        <p class="mt-1 text-[10px] text-gray-400">-</p>
+                      {% endif %}
+                    {% else %}
+                      <p class="mt-1 text-[10px] text-gray-400">-</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+      function openImageLightbox(url) {
+          const overlay = document.createElement("div");
+          overlay.id = "image-lightbox-overlay";
+          overlay.className = "fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4 py-4";
+          overlay.onclick = function(e) {
+              if (e.target === overlay) {
+                  closeImageLightbox();
+              }
+          };
+
+          overlay.innerHTML = `
+        <div class="relative max-w-[90vw] max-h-[90vh]">
+          <img src="${url}" alt="Full Report Photo" class="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl" />
+          <button type="button" onclick="closeImageLightbox()" class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center shadow-lg hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `;
+
+          document.body.appendChild(overlay);
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+      }
+
+      function closeImageLightbox() {
+          const overlay = document.getElementById("image-lightbox-overlay");
+          if (overlay) {
+              overlay.remove();
+          }
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+      }
+
+      function exportJobOrder() {
+          const overlay = document.createElement("div");
+          overlay.id = "job-order-overlay";
+          overlay.className = "fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-4";
+          overlay.onclick = function(e) {
+              if (e.target === overlay) {
+                  closeJobOrder();
+              }
+          };
+
+          overlay.innerHTML = `
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl h-[90vh] flex flex-col overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
+            <h2 class="text-sm font-bold text-gray-900">Job Order Form — {{ report.job_order_id }}</h2>
+            <button type="button" onclick="closeJobOrder()" aria-label="Close preview" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <iframe src="{% url 'exportJobOrderPDF' report.id %}" title="Job order preview" class="flex-1 w-full border-0"></iframe>
+        </div>
+      `;
+
+          document.body.appendChild(overlay);
+          document.documentElement.style.overflow = "hidden";
+          document.body.style.overflow = "hidden";
+      }
+
+      function closeJobOrder() {
+          const overlay = document.getElementById("job-order-overlay");
+          if (overlay) {
+              overlay.remove();
+          }
+          document.documentElement.style.overflow = "";
+          document.body.style.overflow = "";
+      }
+
+      document.addEventListener("keydown", function(e) {
+          if (e.key === "Escape") {
+              const jobOrderOverlay = document.getElementById("job-order-overlay");
+              if (jobOrderOverlay) {
+                  closeJobOrder();
+              }
+          }
+      });
+  </script>
+  {% if is_med_personnel_report and report.status == 'resolved' and not already_surveyed %}
+    <div class="mx-auto mt-6 max-w-3xl rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-700">
+      Your concern is resolved. The Head Admin will provide the QQT rating for the assigned MED personnel.
+    </div>
+  {% endif %}
+  {% if show_survey %}
+    <div id="resolved-notif"
+         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-4 pointer-events-auto">
+      <div class="relative bg-white rounded-3xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4 shrink-0">
+          <svg class="w-7 h-7 text-green-500"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="2"
+               viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          </svg>
+        </div>
+        <h2 class="text-lg font-bold text-gray-900 mb-2">Your report has been resolved!</h2>
+        <p class="text-sm text-gray-500 mb-6">Here's a summary of your report's timeline. Choose how you'd like to complete the Client Satisfaction Survey.</p>
+        <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 items-stretch">
+          <div class="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 text-left flex flex-col">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wide leading-snug mb-2">Date In Progress</p>
+            <div class="mt-auto">
+              {% if report.in_progress_at %}
+                <p class="text-base font-bold text-gray-900 leading-tight">{{ report.in_progress_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-gray-400">{{ report.in_progress_at|date:"h:i A" }}</p>
+              {% else %}
+                <p class="text-base font-bold text-gray-400">-</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-4 text-left flex flex-col">
+            <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wide leading-snug mb-2">Expected Resolution Time</p>
+            <div class="mt-auto">
+              {% if report.expected_resolution_at %}
+                <p class="text-base font-bold text-blue-700 leading-tight">{{ report.expected_resolution_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-blue-400">{{ report.expected_resolution_at|date:"h:i A" }}</p>
+              {% else %}
+                <p class="text-base font-bold text-blue-300">-</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="bg-green-50 border border-green-100 rounded-2xl px-4 py-4 text-left flex flex-col">
+            <p class="text-[10px] font-bold text-green-600 uppercase tracking-wide leading-snug mb-2">Actual Resolution Time</p>
+            <div class="mt-auto">
+              {% if report.accomplished_at %}
+                <p class="text-base font-bold text-green-700 leading-tight">{{ report.accomplished_at|date:"M d, Y" }}</p>
+                <p class="text-sm text-green-500">{{ report.accomplished_at|date:"h:i A" }}</p>
+              {% else %}
+                <p class="text-base font-bold text-green-300">-</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-left mb-4">
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Description</h3>
+          <p class="text-sm text-gray-700 leading-6 italic">{{ report.description }}</p>
+        </div>
+        <div class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-left mb-6">
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Details</h3>
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-4 items-start">
+              <span class="text-sm text-gray-500 shrink-0">Location</span>
+              <span class="text-sm font-semibold text-gray-800 text-right leading-5 break-words whitespace-normal min-w-0">{{ report.location }}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 items-start">
+              <span class="text-sm text-gray-500 shrink-0">Category</span>
+              <span class="text-sm font-semibold text-gray-800 text-right leading-5 break-words whitespace-normal min-w-0">{{ report.get_category_display }}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 items-start">
+              <span class="text-sm text-gray-500 shrink-0">Date Submitted</span>
+              <span class="text-sm font-semibold text-gray-800 text-right leading-5 break-words whitespace-normal min-w-0">{{ report.submitted_at|date:"M d, Y - h:i A" }}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 items-start">
+              <span class="text-sm text-gray-500 shrink-0">Status</span>
+              <span class="text-sm font-semibold text-gray-800 text-right leading-5 break-words whitespace-normal min-w-0">{{ report.get_status_display }}</span>
+            </div>
+            {% if report.assigned_personnel_summary %}
+              <div class="grid grid-cols-2 gap-4 items-start">
+                <span class="text-sm text-gray-500 shrink-0">MED Personnel</span>
+                <span class="text-sm font-semibold text-gray-800 text-right leading-5 break-words whitespace-normal min-w-0">{{ report.assigned_personnel_summary }}</span>
+              </div>
+            {% endif %}
+            {% if report.priority %}
+              <div class="grid grid-cols-2 gap-4 items-start">
+                <span class="text-sm text-gray-500 shrink-0">Priority</span>
+                <span class="text-sm font-semibold text-right leading-5 break-words whitespace-normal min-w-0 {% if report.priority == 'critical' %}text-red-600{% elif report.priority == 'high' %}text-orange-500{% elif report.priority == 'standard' %}text-yellow-600{% endif %}">{{ report.get_priority_display }}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div id="survey-method-choices" class="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button type="button"
+                  onclick="chooseSurveyMethod('system')"
+                  class="w-full flex items-center justify-center text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-xl transition-colors">
+            Take Survey
+          </button>
+          <button type="button"
+                  onclick="chooseSurveyMethod('manual')"
+                  class="w-full flex items-center justify-center text-center bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold text-sm py-3 rounded-xl transition-colors">
+            Visit MED Office
+          </button>
+        </div>
+        <p id="survey-choice-error" class="hidden w-full text-sm text-red-600 text-center mt-3"></p>
+      </div>
+    </div>
+    <div id="manual-survey-confirmation" class="hidden fixed inset-0 z-[10000] items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-4">
+      <div role="dialog" aria-modal="true" aria-labelledby="manual-survey-title" class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6 sm:p-8 flex flex-col items-center text-center">
+        <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+          <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          </svg>
+        </div>
+        <h2 id="manual-survey-title" class="text-base font-bold text-gray-900 mb-4">Manual Survey Selected</h2>
+        <div class="w-full bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-start gap-3 text-left mb-6">
+          <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+          </svg>
+          <p class="text-xs text-blue-700 leading-relaxed text-justify">Please visit the Maintenance and Engineering Division office during office hours to print and sign the Job Order and complete the Customer Service Survey. An admin will upload the scanned form and record your ratings.</p>
+        </div>
+        <button type="button" onclick="closeManualSurveyConfirmation()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-xl transition-colors">Got it</button>
+        <button type="button" onclick="backToSurveyChoices()" class="mt-3 text-xs font-semibold text-blue-700 hover:text-blue-900">Back — choose another method</button>
+      </div>
+    </div>
+    <div id="survey-form"
+         class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-4 pointer-events-auto">
+       <div class="bg-white rounded-3xl shadow-xl w-full max-w-3xl max-h-[94vh] overflow-y-auto p-6 sm:p-8">
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <button type="button" onclick="backToSurveyChoices()" class="text-sm font-semibold text-blue-600 hover:text-blue-800">← Change method</button>
+          </div>
+          <h2 class="text-xl font-bold text-gray-900 mb-1 text-center">Satisfaction Survey</h2>
+         <p class="text-sm text-gray-400 text-center mb-8">Report {{ report.job_order_id }}</p>
+         <p class="text-sm text-gray-500 text-center mb-7">Please rate each part of the service from 1 to 5.</p>
+         <div class="space-y-6">
+           {% for field, question in survey_questions %}
+             <section class="rounded-2xl border border-gray-100 bg-gray-50/70 px-3 py-4 sm:px-5">
+               <h3 class="text-base font-semibold text-gray-700 mb-4 text-center">{{ question }}</h3>
+               <div class="grid grid-cols-5 gap-1 sm:gap-3">
+                 {% for emoji, label, val in emojis %}
+                   <button type="button"
+                           onclick="selectRating('{{ field }}', {{ val }})"
+                           id="{{ field }}-emoji-{{ val }}"
+                           class="emoji-btn min-w-0 flex flex-col items-center justify-start px-1 py-3 rounded-xl transition-all">
+                     <span class="text-3xl sm:text-4xl leading-none mb-2">{{ emoji }}</span>
+                     <span class="text-xs font-semibold text-gray-600 text-center leading-none mb-1">{{ val }}</span>
+                     <span class="text-[9px] sm:text-xs text-gray-400 text-center leading-tight min-h-[30px] flex items-start justify-center">{{ label }}</span>
+                   </button>
+                 {% endfor %}
+               </div>
+             </section>
+           {% endfor %}
+         </div>
+         <button type="button"
+                 id="survey-submit-btn"
+                 onclick="submitSurvey()"
+                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors mt-7">
+           Submit Survey
+         </button>
+         <p id="survey-error"
+            class="hidden text-xs text-red-500 text-center mt-3">Please complete all three ratings before submitting.</p>
+      </div>
+    </div>
+    <script>
+         const selectedRatings = {
+             quality: null,
+             quantity: null,
+             timeliness: null,
+         };
+
+        function lockPageScroll() {
+            document.documentElement.style.overflow = "hidden";
+            document.body.style.overflow = "hidden";
+            document.body.style.touchAction = "none";
+            document.body.style.overscrollBehavior = "none";
+
+            const navElements = document.querySelectorAll("nav, aside, [class*='bottom-nav'], [class*='mobile-nav']");
+            navElements.forEach((nav) => {
+                nav.style.pointerEvents = "none";
+            });
+        }
+
+        function unlockPageScroll() {
+            document.documentElement.style.overflow = "";
+            document.body.style.overflow = "";
+            document.body.style.touchAction = "";
+            document.body.style.overscrollBehavior = "";
+
+            const navElements = document.querySelectorAll("nav, aside, [class*='bottom-nav'], [class*='mobile-nav']");
+            navElements.forEach((nav) => {
+                nav.style.pointerEvents = "";
+            });
+        }
+
+         function openSurveyForm() {
+             const resolvedNotif = document.getElementById("resolved-notif");
+             const surveyForm = document.getElementById("survey-form");
+
+             if (resolvedNotif) {
+                 resolvedNotif.classList.add("hidden");
+                 resolvedNotif.classList.remove("flex");
+             }
+
+            if (surveyForm) {
+                surveyForm.classList.remove("hidden");
+            }
+
+             lockPageScroll();
+         }
+
+         function backToSurveyChoices() {
+             const resolvedNotif = document.getElementById("resolved-notif");
+             const surveyForm = document.getElementById("survey-form");
+             const manualConfirmation = document.getElementById("manual-survey-confirmation");
+             const choiceError = document.getElementById("survey-choice-error");
+             if (surveyForm) surveyForm.classList.add("hidden");
+             if (manualConfirmation) {
+                 manualConfirmation.classList.add("hidden");
+                 manualConfirmation.classList.remove("flex");
+             }
+             if (resolvedNotif) {
+                 resolvedNotif.classList.remove("hidden");
+                 resolvedNotif.classList.add("flex");
+             }
+             document.getElementById("survey-method-choices").classList.remove("hidden");
+             if (choiceError) choiceError.classList.add("hidden");
+         }
+
+         function closeManualSurveyConfirmation() {
+             const manualConfirmation = document.getElementById("manual-survey-confirmation");
+             const resolvedNotif = document.getElementById("resolved-notif");
+             if (manualConfirmation) {
+                 manualConfirmation.classList.add("hidden");
+                 manualConfirmation.classList.remove("flex");
+             }
+             if (resolvedNotif) {
+                 resolvedNotif.classList.add("hidden");
+                 resolvedNotif.classList.remove("flex");
+             }
+             unlockPageScroll();
+         }
+
+         function chooseSurveyMethod(method) {
+             const error = document.getElementById("survey-choice-error");
+             const buttons = document.querySelectorAll("#survey-method-choices button");
+             buttons.forEach((button) => { button.disabled = true; });
+             if (error) error.classList.add("hidden");
+
+             fetch("{% url 'chooseSurveyMethod' report.id %}", {
+                 method: "POST",
+                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                 body: `method=${encodeURIComponent(method)}&csrfmiddlewaretoken=${encodeURIComponent("{{ csrf_token }}")}`,
+             })
+             .then(async (response) => {
+                  const data = await response.json();
+                  if (!response.ok || !data.success) throw new Error(data.error || "Unable to save your survey choice.");
+                  document.getElementById("survey-method-choices").classList.add("hidden");
+                  if (method === "system") {
+                      openSurveyForm();
+                  } else {
+                      const resolvedNotif = document.getElementById("resolved-notif");
+                      const manualConfirmation = document.getElementById("manual-survey-confirmation");
+                      resolvedNotif.classList.add("hidden");
+                      resolvedNotif.classList.remove("flex");
+                      manualConfirmation.classList.remove("hidden");
+                      manualConfirmation.classList.add("flex");
+                      lockPageScroll();
+                  }
+             })
+             .catch((err) => {
+                 if (error) {
+                     error.textContent = err.message;
+                     error.classList.remove("hidden");
+                 }
+             })
+             .finally(() => buttons.forEach((button) => { button.disabled = false; }));
+         }
+
+         function selectRating(field, val) {
+             selectedRatings[field] = val;
+
+            const surveyError = document.getElementById("survey-error");
+            if (surveyError) {
+                surveyError.classList.add("hidden");
+            }
+
+             document.querySelectorAll(`[id^="${field}-emoji-"]`).forEach((btn) => {
+                 btn.classList.remove("bg-blue-50", "ring-2", "ring-blue-400");
+             });
+
+             const selectedEmoji = document.getElementById(field + "-emoji-" + val);
+            if (selectedEmoji) {
+                selectedEmoji.classList.add("bg-blue-50", "ring-2", "ring-blue-400");
+            }
+        }
+
+        function setSubmitState(state) {
+            const btn = document.getElementById("survey-submit-btn");
+            if (!btn) return;
+
+            if (state === "loading") {
+                btn.disabled = true;
+                btn.textContent = "Submitting...";
+                btn.style.cursor = "not-allowed";
+            } else {
+                btn.disabled = false;
+                btn.textContent = "Submit Survey";
+                btn.style.cursor = "";
+            }
+        }
+
+        function submitSurvey() {
+            const surveyError = document.getElementById("survey-error");
+
+             if (Object.values(selectedRatings).some((rating) => !rating)) {
+                if (surveyError) {
+                     surveyError.textContent = "Please complete all three ratings before submitting.";
+                    surveyError.classList.remove("hidden");
+                }
+                return;
+            }
+
+            const submitBtn = document.getElementById("survey-submit-btn");
+            if (submitBtn && submitBtn.disabled) {
+                return;
+            }
+            setSubmitState("loading");
+
+            const csrfToken = "{{ csrf_token }}";
+
+            fetch("{% url 'submitSurvey' report.id %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: `quality=${selectedRatings.quality}` +
+                        `&quantity=${selectedRatings.quantity}` +
+                        `&timeliness=${selectedRatings.timeliness}` +
+                        `&csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.success) {
+                        const surveyForm = document.getElementById("survey-form");
+                        if (surveyForm) {
+                            surveyForm.remove();
+                        }
+
+                        showSuccessMessage();
+                        return;
+                    }
+
+                    setSubmitState("idle");
+
+                    if (surveyError) {
+                        surveyError.textContent = data.error || "Unable to submit survey.";
+                        surveyError.classList.remove("hidden");
+                    }
+                })
+                .catch(() => {
+                    setSubmitState("idle");
+                    if (surveyError) {
+                        surveyError.textContent = "Something went wrong. Please try again.";
+                        surveyError.classList.remove("hidden");
+                    }
+                });
+        }
+
+        function showSuccessMessage() {
+            lockPageScroll();
+
+            const modal = document.createElement("div");
+            modal.className = "fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-4 pointer-events-auto overscroll-none";
+
+            modal.innerHTML = `
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6 sm:p-8 flex flex-col items-center text-center">
+          <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </div>
+
+          <h2 class="text-base font-bold text-gray-900 mb-2">Thank you for your feedback!</h2>
+
+          <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-start gap-3 text-left mb-6">
+            <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+            <p class="text-xs text-blue-700 leading-relaxed text-justify">
+              Your Client Satisfaction Survey was submitted online. No wet signature is required for this system-generated survey.
+            </p>
+          </div>
+
+          <button type="button" id="survey-success-close" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-3 rounded-xl transition-colors">
+            Got it
+          </button>
+        </div>
+      `;
+
+            document.body.appendChild(modal);
+
+            const closeButton = document.getElementById("survey-success-close");
+            if (closeButton) {
+                closeButton.addEventListener("click", function() {
+                    modal.remove();
+                    unlockPageScroll();
+                    window.location.reload();
+                });
+            }
+        }
+
+        lockPageScroll();
+    </script>
+  {% endif %}
+{% endblock %}

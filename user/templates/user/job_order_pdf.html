@@ -1,0 +1,451 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            @page {
+                size: 8.5in 13in;
+                margin: 1.3cm;
+            }
+
+            body {
+                font-family: Helvetica, Arial, sans-serif;
+                font-size: 9.5pt;
+                color: #000;
+            }
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            td {
+                border: 1px solid #000;
+                padding: 3px 4px;
+                vertical-align: top;
+            }
+
+            .valign-middle {
+                vertical-align: middle !important;
+            }
+
+            .no-border {
+                border: none;
+                padding: 0;
+            }
+
+            .center {
+                text-align: center;
+            }
+
+            .bold {
+                font-weight: bold;
+            }
+
+            .logo-row {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 22px;
+                margin-bottom: 3px;
+            }
+
+            .logo {
+                width: 58px;
+                height: 58px;
+                object-fit: contain;
+            }
+
+            .title-main {
+                font-size: 16pt;
+                font-family: "Perpetua Titling MT", "Palatino Linotype", serif;
+                line-height: 1;
+                margin: 0;
+            }
+
+            .sig-underline-cell {
+                border-top: none;
+                border-left: none;
+                border-right: none;
+                border-bottom: 1px solid #000;
+                text-align: center;
+                line-height: 1;
+                padding-bottom: 1px;
+                padding-left: 0;
+                padding-right: 0;
+            }
+
+            .sig-space {
+                font-size: 3pt;
+                line-height: 3pt;
+            }
+
+
+            .signature-caption {
+                font-size: 8pt;
+                font-style: italic;
+                text-align: center;
+                margin-top: 3px;
+            }
+
+            .title-sub {
+                font-size: 12pt;
+                font-weight: bold;
+                margin: 0;
+                line-height: 0.95;
+            }
+
+            .small-italic {
+                font-size: 7.5pt;
+                font-style: italic;
+            }
+
+            .italic {
+                font-style: italic;
+            }
+
+            .caption {
+                font-size: 8pt;
+                font-style: italic;
+                text-align: center;
+                margin-top: 3px;
+            }
+
+            .blank-line {
+                border-bottom: 1px solid #000;
+                height: 14px;
+                line-height: 1;
+                padding-top: 3px;
+            }
+
+
+            .tall-cell {
+                height: 50px;
+            }
+
+            .section-label {
+                font-weight: bold;
+            }
+
+            .mat-row td {
+                height: 26px;
+                padding: 0 4px;
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <!-- Header -->
+            <tr>
+                <td class="center" style="width:50%;">
+                    <div class="logo-row">
+                        <img src="{% static 'user/images/UDM logo.png' %}"
+                             class="logo"
+                             alt="UDM Logo">
+                        <img src="{% static 'user/images/Manila logo.png' %}"
+                             class="logo"
+                             alt="City of Manila Seal">
+                        <img src="{% static 'user/images/BP logo.png' %}"
+                             class="logo"
+                             alt="Bagong Pilipinas">
+                    </div>
+                    <div class="title-main">UNIVERSIDAD DE MANILA</div>
+                </td>
+                <td class="center"
+                    style="width:50%;
+                           vertical-align: middle;
+                           text-align: center">
+                    <div class="title-sub">Maintenance and Engineering Division</div>
+                    <div class="title-sub">JOB ORDER FORM</div>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:60%; padding: 3px 4px 1px 4px;">
+                    <span class="bold">Unit/Division/College:</span> {{ report.user.profile.department_name|default:"______________________________________________" }}
+                </td>
+                <td style="width:40%; padding: 3px 4px 0px 4px;">
+                    <span class="bold">No.:</span> {{ report.job_order_id|default:"________________" }}
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="bold">Date:</span> {{ report.submitted_at|date:"M d, Y" }}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="small-italic" style="border-bottom: none">Please check appropriate box:</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border-top: none;">
+                    <table class="no-border">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:33%; padding: 2px 6px 2px 6px;">[{% if category_checks.vehicle_checkup %}✔{% else %} {% endif %}] Vehicle Check-up</td>
+                            <td class="no-border" style="width:33%; padding: 2px 6px 2px 6px;">[{% if category_checks.electrical %}✔{% else %} {% endif %}] Electrical</td>
+                            <td class="no-border" style="width:34%; padding: 2px 6px 2px 6px;">[{% if category_checks.refrigeration_acu %}✔{% else %} {% endif %}] Refrigeration / ACU's</td>
+                        </tr>
+                        <tr class="no-border">
+                            <td class="no-border" style="width:33%; padding: 1px 6px;">[{% if category_checks.painting %}✔{% else %} {% endif %}] Painting</td>
+                            <td class="no-border" style="width:33%; padding: 1px 6px;">[{% if category_checks.carpentry_masonry %}✔{% else %} {% endif %}] Carpentry/Masonry</td>
+                            <td class="no-border" style="width:34%; padding: 1px 6px;">[{% if category_checks.plumbing %}✔{% else %} {% endif %}] Plumbing</td>
+                        </tr>
+                        <tr class="no-border">
+                            <td class="no-border" colspan="3" style="padding: 2px 6px;">
+                                [{% if category_checks.others %}✔{% else %} {% endif %}] Other related jobs (pls. specify):
+                                {% if category_checks.others %}{{ report.custom_category }}{% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="tall-cell" style="padding:3px 2px 0px 2px">
+                    <span class="section-label">Scope of Works:</span>
+                    <div class="italic" style="padding-left:10px; padding-right:10px;">{{ report.description }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50%; border-bottom: none; border-right: none;">
+                    <span class="section-label">Requested by:</span>
+                </td>
+                <td style="width:50%; border-bottom: none; border-left: none;">
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:30%; padding:2px 2px;">
+                                <span class="section-label">Received by:</span>
+                            </td>
+                            <td class="no-border"
+                                style="width:70%;
+                                       text-align:right;
+                                       padding:2px 2px">
+                                <span class="section-label">Date and Time:</span>
+                                {{ report.submitted_at|date:"M d, Y - h:i A" }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="border-top: none; border-right: none;">
+                    <div class="sig-space"></div>
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                            <td class="sig-underline-cell">{{ report.reporter_name }}</td>
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                        </tr>
+                    </table>
+                    <div class="signature-caption">Signature on Printed Name</div>
+                </td>
+                <td style="border-top: none; border-left: none;">
+                    <div class="sig-space"></div>
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                            <td class="sig-underline-cell">Engr. Jayson Valeroso</td>
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                        </tr>
+                    </table>
+                    <div class="caption">Maintenance and Engineering Division</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding:3px 2px 1px 2px">
+                    <span class="section-label">Findings:</span>
+                    <div class="italic" style="padding-left:10px; padding-right:10px;">{{ report.findings|default:"______________________________________________________________" }}</div>
+                    <span class="section-label">Recommendation:</span>
+                    <div class="italic" style="padding-left:10px; padding-right:10px;">{{ report.recommendation|default:"______________________________________________________________" }}</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="border-bottom: none;">
+                    <table style="width:100%; border-top:0; border-bottom:0;">
+                        <tr>
+                            <td colspan="2"
+                                class="bold"
+                                style="width:35%;
+                                       padding:3px 2px 1px 2px;
+                                       border-top:none;
+                                       border-left:none">Materials requirement*:</td>
+                            <td class="bold center"
+                                style="width:65%;
+                                       padding:3px 2px 1px 2px;
+                                       border-top:none;
+                                       border-right:none">Item Description</td>
+                        </tr>
+                        <tr>
+                            <td class="bold center"
+                                style="width:17.5%;
+                                       padding:3px 2px 1px 2px;
+                                       border-left:none">Quantity</td>
+                            <td class="bold center" style="width:17.5%; padding:3px 2px 1px 2px;">Unit</td>
+                            <td style="width:65%; padding:3px 2px 1px 2px; border-right:none;">&nbsp;</td>
+                        </tr>
+                        {% for m in report.materials_rows|slice:":4" %}
+                        <tr class="mat-row">
+                            <td class="center" style="width:17.5%; border-left:none;">{{ m.qty|default:"" }}</td>
+                            <td class="center" style="width:17.5%;">{{ m.unit|default:"" }}</td>
+                            <td style="width:65%; border-right:none;">{{ m.description|default:"" }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if report.materials_rows|length < 1 %}
+                        <tr class="mat-row">
+                            <td style="border-left:none;">&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td style="border-right:none;">&nbsp;</td>
+                        </tr>
+                        {% endif %}
+                        {% if report.materials_rows|length < 2 %}
+                        <tr class="mat-row">
+                            <td style="border-left:none;">&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td style="border-right:none;">&nbsp;</td>
+                        </tr>
+                        {% endif %}
+                        {% if report.materials_rows|length < 3 %}
+                        <tr class="mat-row">
+                            <td style="border-left:none;">&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td style="border-right:none;">&nbsp;</td>
+                        </tr>
+                        {% endif %}
+                        {% if report.materials_rows|length < 4 %}
+                        <tr class="mat-row">
+                            <td style="border-left:none;">&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td style="border-right:none;">&nbsp;</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                    <div class="small-italic "
+                         style="margin-top: 5px;
+                                padding:3px 2px 0px 2px">* attach additional sheet, if necessary</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding:2px 6px; border-top: none;">
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:50%;  padding:0px 2px 1px 2px"><span class="section-label">Checked and Inspected by:</span></td>
+                            <td class="no-border" style="width:50%;  padding:0px 2px 1px 2px">
+                                <table class="no-border" style="width:100%;">
+                                    <tr class="no-border">
+                                        <td class="no-border" style="width:28%; padding:0;"><span class="section-label">Assigned to:</span></td>
+                                        <td class="sig-underline-cell">{{ report.assigned_personnel_summary|default:"" }}</td>
+                                        <td class="no-border" style="width:10%; padding:0;"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr class="no-border">
+                            <td class="no-border">
+                                <div class="sig-space"></div>
+                                <table class="no-border" style="width:100%;">
+                                    <tr class="no-border">
+                                        <td class="no-border" style="width:17.5%; padding:0;"></td>
+                                        <td class="sig-underline-cell">{% if report.pending_awaiting_materials %}Engr. Jayson Valeroso{% else %}&nbsp;{% endif %}</td>
+                                        <td class="no-border" style="width:17.5%; padding:0;"></td>
+                                    </tr>
+                                </table>
+                                <div class="signature-caption">Signature on Printed Name</div>
+                            </td>
+                            <td class="no-border">&nbsp;</td>
+                        </tr>
+                        <tr class="no-border">
+                            <td class="no-border" style=" padding:3px 2px 1px 2px">
+                                <div style="text-align:center;">[{% if report.status != 'pending' and report.pending_awaiting_materials %}✔{% else %} {% endif %}] Available &nbsp;&nbsp;&nbsp; [{% if report.status != 'pending' and not report.pending_awaiting_materials %}✔{% else %} {% endif %}] Not Available</div>
+                            </td>
+                            <td class="no-border" style=" padding:3px 2px 1px 2px">
+                                <div style="text-align:center;">[ ] Available &nbsp;&nbsp;&nbsp; [ ] For procurement</div>
+                            </td>
+                        </tr>
+                        <tr class="no-border">
+                            <td class="no-border" style="vertical-align:bottom;">
+                                <div class="caption">Maintenance and Engineering Division</div>
+                            </td>
+                            <td class="no-border" style="vertical-align:bottom;">
+                                <div class="sig-space"></div>
+                                <table class="no-border" style="width:100%;">
+                                    <tr class="no-border">
+                                        <td class="no-border" style="width:17.5%; padding:0;"></td>
+                                        <td class="sig-underline-cell">&nbsp;</td>
+                                        <td class="no-border" style="width:17.5%; padding:0;"></td>
+                                    </tr>
+                                </table>
+                                <div class="caption">Supply and Equipment Office</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="border-right: none;">
+                    <span>Completion:</span>
+                    <br />
+                    Date/Time Started: {{ report.in_progress_at|date:"M d, Y - h:i A"|default:"___________________" }}
+                    <br />
+                    <span class="section-label">Inspected by:</span>
+                    <div class="sig-space"></div>
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                            <td class="sig-underline-cell">{% if report.status == 'resolved' or report.status == 'closed' %}Engr. Jayson Valeroso{% else %}&nbsp;{% endif %}</td>
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                        </tr>
+                    </table>
+                    <div class="caption">Maintenance and Engineering Division</div>
+                </td>
+                <td style="border-left: none;">
+                    <br />
+                    Date/Time Finished: {{ report.accomplished_at|date:"M d, Y - h:i A"|default:"___________________" }}
+                    <br />
+                    <span class="section-label">Verified complete and Accepted by:</span>
+                    <div class="sig-space"></div>
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                            <td class="sig-underline-cell">{% if report.status == 'resolved' or report.status == 'closed' %}{{ report.reporter_name }}{% else %}&nbsp;{% endif %}</td>
+                            <td class="no-border" style="width:17.5%; padding:0;"></td>
+                        </tr>
+                    </table>
+                    <div class="caption">Requesting Personnel</div>
+                    Date: {% now "M d, Y" %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="bold" style=" padding:3px 2px 1px 2px">{% if report.survey and report.survey.rating_source == 'head_admin' %}Head Admin Group QQT Rating{% else %}Customer Service Survey (to be filled in by customer upon completion){% endif %}</td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    Please rate the completed service from 1 to 5:
+                    <table class="no-border">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:33%; padding: 1px 6px;">Quality: {% if report.survey and report.survey.quality %}{{ report.survey.quality }}{% else %}&nbsp;{% endif %}/5</td>
+                            <td class="no-border" style="width:33%; padding: 1px 6px;">Quantity: {% if report.survey and report.survey.quantity %}{{ report.survey.quantity }}{% else %}&nbsp;{% endif %}/5</td>
+                            <td class="no-border" style="width:34%; padding: 1px 6px;">Timeliness: {% if report.survey and report.survey.timeliness %}{{ report.survey.timeliness }}{% else %}&nbsp;{% endif %}/5</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="sig-space"></div>
+                    <table class="no-border" style="width:100%;">
+                        <tr class="no-border">
+                            <td class="no-border" style="width:35%; padding:0;"></td>
+                            <td class="sig-underline-cell">{{ report.reporter_name }}</td>
+                            <td class="no-border" style="width:35%; padding:0;"></td>
+                        </tr>
+                    </table>
+                    <div class="caption">Signature on Printed Name</div>
+                </td>
+            </tr>
+        </table>
+        <table class="no-border" style="width:100%; margin-top:6px;">
+            <tr class="no-border">
+                <td class="no-border small-italic" style="width:50%; vertical-align:bottom;">F-MED-001 Rev.0 (08-01-25)</td>
+                {% if report.survey_method == 'system' or is_med_personnel_report %}
+                    <td class="no-border small-italic" style="width:50%; vertical-align:bottom; text-align:right;">This is a system generated document. Signature is not required</td>
+                {% endif %}
+            </tr>
+        </table>
+    </body>
+</html>

@@ -1,0 +1,464 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fac-Check Verify Reset Code</title>
+    <script src="{% static 'user/js/theme.js' %}"></script>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/auth_dark.css' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap"
+          rel="stylesheet" />
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'accounts/images/Fac-Check-Logo.png' %}?v=2" />
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        body.fc-signup-page {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: 24px 16px;
+            background: linear-gradient(160deg, #fbfdff 15%, #eef4fc 100%);
+            color: #18324b;
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .fc-signup-background {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .fc-signup-page main {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 440px;
+            margin-block: auto;
+        }
+
+        .fc-signup-card {
+            position: relative;
+            width: 100%;
+            max-width: 440px;
+            padding: 32px 32px 26px;
+            border: 1px solid #e5edf7;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 16px 48px rgba(15, 76, 129, .08);
+        }
+
+        .fc-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-height: 44px;
+            margin-bottom: 4px;
+            color: #175b9b;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .fc-back-link:hover {
+            text-decoration: underline;
+        }
+
+        .fc-signup-heading {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+        .fc-signup-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 18px;
+            border-radius: 16px;
+            background: #edf4ff;
+        }
+
+        .fc-signup-logo svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .fc-signup-heading h1 {
+            font-size: 22px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -.6px;
+            color: #0f4c81;
+        }
+
+        .fc-signup-heading p {
+            margin-top: 12px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #526277;
+        }
+
+        .fc-signup-heading p strong {
+            font-weight: 600;
+            color: #18324b;
+            word-break: break-all;
+        }
+
+        /* Messages */
+        .fc-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            border: 1px solid;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .fc-alert-error {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #b91c1c;
+        }
+
+        .fc-alert-success {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #15803d;
+        }
+
+        /* One-time code boxes */
+        .fc-otp {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 0 8px;
+        }
+
+        .fc-otp-box {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 52px;
+            height: 56px;
+            padding: 0;
+            text-align: center;
+            font-family: inherit;
+            font-size: 20px;
+            font-weight: 600;
+            color: #18324b;
+            background: #f8faff;
+            border: 1px solid #dce5f1;
+            border-radius: 12px;
+            outline: none;
+        }
+
+        .fc-otp-box:focus {
+            background: #fff;
+            border-color: #0f4c81;
+            box-shadow: 0 0 0 3px rgba(15, 76, 129, .13);
+        }
+
+        .fc-otp.has-error .fc-otp-box {
+            border-color: #dc2626;
+        }
+
+        .fc-otp-error {
+            margin: 0 0 16px;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: center;
+            color: #b91c1c;
+        }
+
+        .fc-otp-spacer {
+            height: 16px;
+        }
+
+        .fc-signup-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            min-height: 46px;
+            padding: 10px 16px;
+            border-radius: 11px;
+            border: 1px solid #0f4c81;
+            background: #0f4c81;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, .16);
+        }
+
+        .fc-signup-primary:hover {
+            background: #0d3f6b;
+        }
+
+        .fc-signup-help {
+            margin-top: 18px;
+            color: #526277;
+            font-size: 12px;
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        .fc-text-action {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 0 4px;
+            border: 0;
+            background: none;
+            color: #175b9b;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .fc-text-action:hover {
+            text-decoration: underline;
+        }
+
+        .fc-signup-page a:focus-visible,
+        .fc-signup-page button:focus-visible {
+            outline: 3px solid #427eb3;
+            outline-offset: 3px;
+        }
+
+        .fc-signup-footer {
+            position: relative;
+            text-align: center;
+            margin-top: 10px;
+            color: #526277;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 480px) {
+            body.fc-signup-page {
+                padding: 20px 12px;
+            }
+
+            .fc-signup-card {
+                padding: 28px 20px 24px;
+                border-radius: 20px;
+            }
+
+            .fc-otp {
+                gap: 6px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'accounts/css/account_pages.css' %}">
+    <link rel="stylesheet" href="{% static 'submission-state.css' %}">
+    <script src="{% static 'submission-state.js' %}" defer></script>
+  </head>
+  <body class="fc-signup-page">
+    <svg class="fc-signup-background"
+         viewBox="0 0 1440 900"
+         preserveAspectRatio="xMidYMid slice"
+         fill="none"
+         aria-hidden="true">
+      <path d="M-100 800 C320 430 820 680 1550 350" stroke="#dbe8f8" stroke-width="2" />
+      <path d="M-100 850 C320 480 820 730 1550 400" stroke="#e2ecf9" stroke-width="2" />
+      <path d="M-100 880 C320 510 820 760 1550 430" stroke="#e2ecf9" stroke-width="2" />
+    </svg>
+    <main aria-labelledby="verify-title">
+      <form method="post"
+            action="{% url 'verify_reset_otp' %}"
+            class="fc-signup-card"
+            id="verify-form"
+            autocomplete="off"
+            novalidate>
+        {% csrf_token %}
+        <a href="{% url 'forgot_password' %}" class="fc-back-link fc-account-return">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="m14 7-5 5 5 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          Back to password recovery
+        </a>
+        <div class="fc-signup-heading">
+          <div class="fc-signup-logo">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke-width="1.5"
+                 stroke="#0f4c81"
+                 aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+            </svg>
+          </div>
+          <h1 id="verify-title">Verify your identity</h1>
+          <p>
+            We sent a 6-digit reset code to
+            <br />
+            <strong>{{ user_email }}</strong>
+          </p>
+        </div>
+        {% if messages %}
+          {% for message in messages %}
+            <div class="fc-alert {% if message.tags == 'error' %}fc-alert-error{% else %}fc-alert-success{% endif %}"
+                 role="{% if message.tags == 'error' %}alert{% else %}status{% endif %}">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        {% endif %}
+        <div class="fc-otp{% if form.otp.errors %} has-error{% endif %}"
+             id="otp-group"
+             role="group"
+             aria-label="6-digit verification code">
+          <input type="text"
+                 inputmode="numeric"
+                 autocomplete="one-time-code"
+                 class="fc-otp-box"
+                 data-otp-index="0"
+                 aria-label="Digit 1 of 6"
+                 autofocus />
+          <input type="text"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 class="fc-otp-box"
+                 data-otp-index="1"
+                 aria-label="Digit 2 of 6" />
+          <input type="text"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 class="fc-otp-box"
+                 data-otp-index="2"
+                 aria-label="Digit 3 of 6" />
+          <input type="text"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 class="fc-otp-box"
+                 data-otp-index="3"
+                 aria-label="Digit 4 of 6" />
+          <input type="text"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 class="fc-otp-box"
+                 data-otp-index="4"
+                 aria-label="Digit 5 of 6" />
+          <input type="text"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 class="fc-otp-box"
+                 data-otp-index="5"
+                 aria-label="Digit 6 of 6" />
+        </div>
+        <input type="hidden" name="otp" id="id_otp" />
+        <p id="otp-error" class="fc-otp-error" role="alert" {% if not form.otp.errors %}hidden{% endif %}>{% if form.otp.errors %}{{ form.otp.errors.0 }}{% else %}Enter all 6 digits of the code.{% endif %}</p>
+        {% if not form.otp.errors %}<div class="fc-otp-spacer" id="otp-spacer"></div>{% endif %}
+        {% include 'accounts/components/otp_countdown.html' %}
+        <button type="submit" class="fc-signup-primary">Verify</button>
+        <p class="fc-signup-help">
+          Didn't receive the code?
+          <button type="submit"
+                  formaction="{% url 'resend_reset_otp' %}"
+                  formnovalidate
+                  class="fc-text-action">Resend code</button>
+        </p>
+      </form>
+    </main>
+    <footer class="fc-signup-footer">
+      <p class="text-xs">&copy; 2026 Fac-Check. All rights reserved.</p>
+    </footer>
+    <script>
+        (function () {
+            var form = document.getElementById('verify-form');
+            var group = document.getElementById('otp-group');
+            var hidden = document.getElementById('id_otp');
+            var error = document.getElementById('otp-error');
+            var spacer = document.getElementById('otp-spacer');
+            var boxes = Array.prototype.slice.call(document.querySelectorAll('.fc-otp-box'));
+
+            if (!form || !hidden || !boxes.length) return;
+
+            function sync() {
+                hidden.value = boxes.map(function (b) { return b.value; }).join('');
+            }
+
+            function clearError() {
+                group.classList.remove('has-error');
+                error.hidden = true;
+                if (spacer) spacer.hidden = false;
+            }
+
+            // Spreads digits over the boxes starting at `start`.
+            // Used for typing, pasting, and SMS/email autofill (all arrive as input).
+            function fill(digits, start) {
+                digits.split('').slice(0, boxes.length - start).forEach(function (digit, i) {
+                    boxes[start + i].value = digit;
+                });
+                sync();
+                boxes[Math.min(start + digits.length, boxes.length - 1)].focus();
+            }
+
+            boxes.forEach(function (box, index) {
+                box.addEventListener('input', function () {
+                    var digits = box.value.replace(/\D/g, '');
+                    box.value = '';
+                    clearError();
+                    if (!digits) {
+                        sync();
+                        return;
+                    }
+                    fill(digits, index);
+                });
+
+                box.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' && !box.value && index > 0) {
+                        boxes[index - 1].value = '';
+                        boxes[index - 1].focus();
+                        sync();
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowLeft' && index > 0) {
+                        boxes[index - 1].focus();
+                    } else if (e.key === 'ArrowRight' && index < boxes.length - 1) {
+                        boxes[index + 1].focus();
+                    }
+                });
+
+                box.addEventListener('focus', function () {
+                    box.select();
+                });
+            });
+
+            // "Resend code" skips this check; only Verify needs all 6 digits.
+            form.addEventListener('submit', function (e) {
+                var isResend = e.submitter && e.submitter.hasAttribute('formaction');
+                if (isResend) return;
+
+                sync();
+                if (hidden.value.length < 6) {
+                    e.preventDefault();
+                    group.classList.add('has-error');
+                    error.textContent = 'Enter all 6 digits of the code.';
+                    error.hidden = false;
+                    if (spacer) spacer.hidden = true;
+                    var firstEmpty = boxes.filter(function (b) { return !b.value; })[0];
+                    (firstEmpty || boxes[0]).focus();
+                }
+            });
+        })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,203 @@
+/*
+ * Dark mode for the landing page (accounts/index.html).
+ *
+ * The page is mostly Tailwind utilities, but it also has a large inline
+ * <style> block with hardcoded colors (.fc-phone-*, .fc-who, .fc-footer, the
+ * mobile menu) and arbitrary-value classes like bg-[#0F4C81] that the shared
+ * Tailwind dark palette does not remap. This file covers those.
+ *
+ * Needs user/js/theme.js in <head> (it sets <html class="dark">).
+ * Palette matches theme/static_src/src/styles.css: page #18191a, card #242526,
+ * raised #2c2d2f, borders #3e4042 / #4e5052, text #e4e6eb / #b0b3b8,
+ * accent #7db4ff, solid blue #2f5fbf.
+ * Every rule starts with html.dark, so it wins over the inline <style> block.
+ */
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* ---- Page -------------------------------------------------------------- */
+/* body has .bg-white, which the shared palette maps to the card colour;
+   the page itself sits one step darker. */
+html.dark body.bg-white {
+  background-color: #18191a;
+}
+html.dark a:focus-visible,
+html.dark button:focus-visible {
+  outline-color: #7db4ff;
+}
+
+/* ---- Slate utilities (not remapped by the shared palette) ------------- */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #e4e6eb;
+}
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #b0b3b8;
+}
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80 {
+  border-color: #3e4042;
+}
+html.dark .border-slate-300 {
+  border-color: #4e5052;
+}
+/* Re-assert hover borders: the two rules above are more specific than the
+   utility's own :hover rule. */
+html.dark .hover\:border-blue-300:hover {
+  border-color: #305da6;
+}
+
+/* ---- Brand navy arbitrary values --------------------------------------- */
+html.dark .text-\[\#0F4C81\] {
+  color: #7db4ff;
+}
+/* Headline: white line plus one accent blue (was two different blues). */
+html.dark #landing-title {
+  color: #e4e6eb;
+}
+html.dark #landing-title > .fc-heading-script {
+  color: #7db4ff;
+}
+html.dark #landing-title + p {
+  color: #b0b3b8; /* also beats the tablet/mobile #334155 override */
+}
+html.dark .bg-\[\#0F4C81\] {
+  background-color: #2f5fbf;
+}
+html.dark .hover\:bg-\[\#0d3f6b\]:hover {
+  background-color: #3b6bcf;
+}
+html.dark .active\:bg-\[\#0a3557\]:active {
+  background-color: #264f9f;
+}
+html.dark .ring-white {
+  --tw-ring-color: #18191a;
+}
+
+/* ---- Header and nav ----------------------------------------------------- */
+html.dark #landing-nav > a > span {
+  color: #e4e6eb;
+}
+html.dark #landing-menu-toggle {
+  color: #7db4ff;
+}
+html.dark #landing-menu-toggle:hover {
+  color: #bcd6ff;
+}
+@media (max-width: 767px) {
+  html.dark #landing-nav.menu-ready #landing-menu {
+    background: #242526;
+    border-bottom-color: #3e4042;
+    box-shadow: 0 12px 20px rgb(0 0 0 / 0.45);
+  }
+}
+
+/* ---- Hero --------------------------------------------------------------- */
+/* Flatten the blue tint so header, hero and cards share one neutral dark. */
+html.dark .relative.overflow-x-clip > div[aria-hidden="true"]:first-child {
+  background: none !important;
+}
+html.dark section[aria-labelledby="landing-title"] > div[aria-hidden="true"] {
+  opacity: 0.45;
+}
+html.dark .fc-cta-secondary {
+  color: #7db4ff;
+}
+html.dark .fc-cta-secondary:hover {
+  color: #bcd6ff;
+}
+
+/* Phone callout cards */
+html.dark .fc-phone-card {
+  background: #2c2d2f;
+  border-color: #3e4042;
+  color: #e4e6eb;
+  box-shadow: 0 8px 20px -10px rgb(0 0 0 / 0.6);
+}
+html.dark .fc-phone-card--report {
+  border-color: #224377;
+}
+html.dark .fc-phone-card--track {
+  border-color: #5b4115;
+}
+html.dark .fc-phone-card-copy > span {
+  color: #b0b3b8;
+}
+html.dark .fc-phone-sent {
+  box-shadow: 0 0 0 4px #193157;
+}
+html.dark .fc-phone-progress {
+  box-shadow: 0 0 0 4px #5b4115;
+}
+
+/* ---- Shortcut cards ------------------------------------------------------ */
+/* Tile icon: the blue text must not override the white-on-navy hover state. */
+html.dark .group:hover .group-hover\:text-white {
+  color: #fff;
+}
+html.dark .group:hover .group-hover\:bg-\[\#0F4C81\] {
+  background-color: #2f5fbf;
+}
+
+/* ---- "Where your report goes" -------------------------------------------- */
+html.dark #about > div ol > li:nth-child(1) > span:first-child {
+  box-shadow: 0 0 0 4px #193157;
+}
+html.dark #about > div ol > li:nth-child(2) > span:first-child {
+  box-shadow: 0 0 0 4px #5b4115;
+}
+html.dark #about > div ol > li:nth-child(3) > span:first-child {
+  box-shadow: 0 0 0 4px #1f5131;
+}
+html.dark #about > div ol > li:nth-child(4) > span:first-child {
+  box-shadow: 0 0 0 4px #224377;
+}
+html.dark .fc-who {
+  background: #18191a;
+  border-color: #305da6;
+  color: #bcd6ff;
+}
+html.dark .fc-who--you {
+  background: #2f5fbf;
+  border-color: #2f5fbf;
+  color: #fff;
+}
+html.dark .fc-mail {
+  background: #242526;
+  border-color: #305da6;
+}
+
+/* ---- Footer --------------------------------------------------------------- */
+html.dark .fc-footer {
+  background: #242526;
+  border-top: 1px solid #3e4042;
+}
+/* The inline footer style puts the logo on a white tile (needed on the light navy band). On the dark footer, use the plain logo. */
+html.dark .fc-footer-brand img {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ---- Dark polish: neutral "Where your report goes" card, brighter logo, footer hierarchy ---- */
+html.dark #about > div.rounded-3xl {
+  background: #242526;
+  border-color: #3e4042;
+}
+html.dark .fc-footer-brand p,
+html.dark .fc-footer-grid .fc-footer-copy {
+  color: #b0b3b8;
+}
+html.dark .fc-footer-links a {
+  color: #e4e6eb;
+}
+html.dark .fc-footer-links a:hover {
+  color: #fff;
+}
+html.dark .fc-footer::before {
+  opacity: 0.55;
+}

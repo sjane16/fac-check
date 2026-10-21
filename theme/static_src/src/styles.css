@@ -1,0 +1,734 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark;
+}
+/* Align daisyUI's built-in dark theme with the Fac-Check palette below, so
+   daisy components (text-primary, alerts, toasts) match our own surfaces.
+   Only the listed variables are overridden. */
+@plugin "daisyui/theme" {
+  name: "dark";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+  --color-base-100: #242526;
+  --color-base-200: #18191a;
+  --color-base-300: #323436;
+  --color-base-content: #e4e6eb;
+  --color-primary: #7db4ff;
+  --color-primary-content: #0b1220;
+}
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-poppins: "Poppins", sans-serif;
+}
+
+/**
+  * A catch-all path to Django template files, JavaScript, and Python files
+  * that contain Tailwind CSS classes and will be scanned by Tailwind to generate the final CSS file.
+  *
+  * If your final CSS file is not being updated after code changes, you may want to broaden or narrow
+  * the scope of this path.
+  */
+@source "../../../**/*.{html,py,js}";
+
+/* Tailwind v4 shows the default arrow on buttons; bring back the hand pointer
+   for every clickable button. In the base layer, so a class like
+   cursor-not-allowed on a specific button still wins. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  input[type="submit"]:not(:disabled),
+  input[type="button"]:not(:disabled),
+  input[type="reset"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* ==========================================================================
+   DARK MODE
+   Strategy: redefine Tailwind's color variables while <html class="dark"> is
+   set (toggled by user/static/user/js/theme.js). Keep these rules OUTSIDE any
+   @layer so they beat Tailwind's layered theme variables.
+   ========================================================================== */
+
+:root {
+  --fc-surface: #ffffff;
+}
+
+/* Dashboard brand palette. Scoped to the application shells so existing blue
+   utilities, including AJAX content, share the public site's primary colour.
+   Semantic palettes (success, warning, danger and priority) stay independent. */
+html.fc-app {
+  --fc-brand: #0f4c81;
+  --fc-brand-hover: #0d3f6b;
+  --fc-brand-active: #0a3557;
+  --color-primary: var(--fc-brand);
+  --color-primary-content: #ffffff;
+  --color-blue-400: #397daf;
+  --color-blue-500: var(--fc-brand);
+  --color-blue-600: var(--fc-brand);
+  --color-blue-700: var(--fc-brand-hover);
+  --color-blue-800: #092d4b;
+  --color-blue-900: #07243c;
+}
+
+html.fc-app:not(.dark) {
+  --color-blue-50: #f0f6fb;
+  --color-blue-100: #e0edf7;
+  --color-blue-200: #bed8ed;
+  --color-blue-300: #8fbadd;
+}
+
+html.fc-app.dark {
+  /* One blue family for actions, navigation, links and selected controls. */
+  --fc-brand: #24639b;
+  --fc-brand-hover: #2b70ad;
+  --fc-brand-active: #205889;
+  --fc-accent: #91bfe8;
+  --fc-accent-strong: #c0dbf2;
+  --color-primary: var(--fc-accent);
+  --color-primary-content: #0b1220;
+  --color-blue-50: #1c2b39;
+  --color-blue-100: #22384b;
+  --color-blue-200: #35536c;
+  --color-blue-300: #527b9e;
+  --color-blue-400: var(--fc-accent);
+}
+
+html.fc-app .hover\:bg-blue-600:hover,
+html.fc-app .hover\:bg-blue-700:hover {
+  background-color: var(--fc-brand-hover);
+}
+
+html.fc-app .active\:bg-blue-700:active,
+html.fc-app .active\:bg-blue-800:active {
+  background-color: var(--fc-brand-active);
+}
+
+html.fc-app.dark .hover\:text-blue-500:hover {
+  color: var(--fc-accent);
+}
+
+html.dark {
+  color-scheme: dark;
+
+  /* Surfaces: elevation is expressed by lightness, not shadow (Material,
+     GitHub, Radix). page -> card -> floating, about 1.1:1 apart each.
+     #242526 is the card colour; the page sits one step below it. */
+  --fc-surface: #242526; /* cards, sidebar */
+  --fc-raised: #2c2d2f; /* modals, chatbot, popovers */
+
+  /* Neutrals: near-neutral charcoal. Text steps are off-white, never #fff,
+     and every text step clears 4.5:1 on page, card and raised surfaces. */
+  --color-gray-50: #18191a; /* page bg + inset fields */
+  --color-gray-100: #323436; /* hover fill, soft dividers */
+  --color-gray-200: #3e4042; /* borders */
+  --color-gray-300: #4e5052; /* input borders */
+  --color-gray-400: #96999e; /* placeholder, icons (4.8:1 on raised) */
+  --color-gray-500: #b0b3b8; /* secondary text */
+  --color-gray-600: #b0b3b8; /* same tone as 500: two text steps, not five */
+  --color-gray-700: #e4e6eb; /* primary text */
+  --color-gray-800: #e4e6eb;
+  --color-gray-900: #e4e6eb;
+
+  /* Status and alert tints are solid, not alpha. Translucent fills over a
+     grey card went muddy and washed out; these keep their hue on any surface.
+     50 = chip fill, 100 = stronger fill, 200 = border, 300 = hover border. */
+  --color-blue-50: #142643;
+  --color-blue-100: #193157;
+  --color-blue-200: #224377;
+  --color-blue-300: #305da6;
+  --color-sky-50: #103546;
+  --color-sky-100: #15455b;
+  --color-sky-200: #1d5e7c;
+  --color-sky-300: #2983ae;
+  --color-green-50: #183f26;
+  --color-green-100: #1f5131;
+  --color-green-200: #2a6f43;
+  --color-green-300: #3b9b5e;
+  --color-red-50: #431514;
+  --color-red-100: #571b19;
+  --color-red-200: #772522;
+  --color-red-300: #a63430;
+  --color-orange-50: #462610;
+  --color-orange-100: #5b3115;
+  --color-orange-200: #7c431d;
+  --color-orange-300: #ae5e29;
+  --color-yellow-50: #463910;
+  --color-yellow-100: #5b4915;
+  --color-yellow-200: #7c641d;
+  --color-amber-50: #463310;
+  --color-amber-100: #5b4115;
+  --color-amber-200: #7c591d;
+  --color-purple-50: #2a1a47;
+  --color-purple-100: #36215c;
+  --color-purple-200: #4b2f82;
+  --color-purple-300: #6b46b8;
+  --color-indigo-50: #1b1c46;
+  --color-indigo-100: #25265b;
+  --color-indigo-200: #35387f;
+  --color-indigo-300: #4f54b5;
+
+  /* Other neutral families follow the gray scale, so bg-slate-50,
+     text-slate-400, border-zinc-200 and friends never stay light on dark. */
+  --color-slate-50: var(--color-gray-50);
+  --color-slate-100: var(--color-gray-100);
+  --color-slate-200: var(--color-gray-200);
+  --color-slate-300: var(--color-gray-300);
+  --color-slate-400: var(--color-gray-400);
+  --color-slate-500: var(--color-gray-500);
+  --color-slate-600: var(--color-gray-500);
+  --color-slate-700: var(--color-gray-700);
+  --color-slate-800: var(--color-gray-800);
+  --color-slate-900: var(--color-gray-900);
+  --color-zinc-50: var(--color-gray-50);
+  --color-zinc-100: var(--color-gray-100);
+  --color-zinc-200: var(--color-gray-200);
+  --color-zinc-300: var(--color-gray-300);
+  --color-zinc-400: var(--color-gray-400);
+  --color-zinc-500: var(--color-gray-500);
+  --color-zinc-600: var(--color-gray-500);
+  --color-zinc-700: var(--color-gray-700);
+  --color-zinc-800: var(--color-gray-800);
+  --color-zinc-900: var(--color-gray-900);
+  --color-neutral-50: var(--color-gray-50);
+  --color-neutral-100: var(--color-gray-100);
+  --color-neutral-200: var(--color-gray-200);
+  --color-neutral-300: var(--color-gray-300);
+  --color-neutral-400: var(--color-gray-400);
+  --color-neutral-500: var(--color-gray-500);
+  --color-neutral-600: var(--color-gray-500);
+  --color-neutral-700: var(--color-gray-700);
+  --color-neutral-800: var(--color-gray-800);
+  --color-neutral-900: var(--color-gray-900);
+  --color-stone-50: var(--color-gray-50);
+  --color-stone-100: var(--color-gray-100);
+  --color-stone-200: var(--color-gray-200);
+  --color-stone-300: var(--color-gray-300);
+  --color-stone-400: var(--color-gray-400);
+  --color-stone-500: var(--color-gray-500);
+  --color-stone-600: var(--color-gray-500);
+  --color-stone-700: var(--color-gray-700);
+  --color-stone-800: var(--color-gray-800);
+  --color-stone-900: var(--color-gray-900);
+}
+
+/* Wave backgrounds on the dashboard stat cards.
+   The SVG paths hardcode pastel fills (#F3F4F6, #FED7AA, ...) and an opacity
+   attribute, so on dark they stacked two layers of transparency and almost
+   vanished. CSS beats both attributes, so we recolor here without editing
+   every SVG. Solid status tones at full opacity: the back wave uses each hue's
+   "100" step and the front wave its border step ("200"), reading as layered
+   paper. They end well below the card text. */
+html.dark svg path[fill="#F3F4F6" i],
+html.dark svg path[fill="#E5E7EB" i],
+html.dark svg path[fill="#FFF7ED" i],
+html.dark svg path[fill="#FED7AA" i],
+html.dark svg path[fill="#F0F9FF" i],
+html.dark svg path[fill="#BAE6FD" i],
+html.dark svg path[fill="#F0FDF4" i],
+html.dark svg path[fill="#DCFCE7" i],
+html.dark svg path[fill="#EFF6FF" i],
+html.dark svg path[fill="#DBEAFE" i] {
+  opacity: 1;
+}
+html.dark svg path[fill="#F3F4F6" i] { fill: var(--color-gray-100); }
+html.dark svg path[fill="#E5E7EB" i] { fill: var(--color-gray-200); }
+html.dark svg path[fill="#FFF7ED" i] { fill: var(--color-orange-100); }
+html.dark svg path[fill="#FED7AA" i] { fill: var(--color-orange-200); }
+html.dark svg path[fill="#F0F9FF" i] { fill: var(--color-sky-100); }
+html.dark svg path[fill="#BAE6FD" i] { fill: var(--color-sky-200); }
+html.dark svg path[fill="#F0FDF4" i] { fill: var(--color-green-100); }
+html.dark svg path[fill="#DCFCE7" i] { fill: var(--color-green-200); }
+html.dark svg path[fill="#EFF6FF" i] { fill: var(--color-blue-100); }
+html.dark svg path[fill="#DBEAFE" i] { fill: var(--color-blue-200); }
+
+/* Fade: solid at the bottom edge, dissolving toward the crest. A mask on the
+   whole wave SVG keeps both layers solid-coloured (no grey bleeding through)
+   while softening the top line. Tune the 20% stop to change how far up the
+   solid colour reaches. */
+html.dark svg[preserveAspectRatio="none"][viewBox="0 0 200 56"] {
+  -webkit-mask-image: linear-gradient(to top, #000 20%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 20%, transparent 100%);
+}
+
+/* dotted pattern on the desktop "Report a Concern" card (inline style) */
+html.dark [style*="c7d9f7"] {
+  background-image: radial-gradient(circle, rgb(59 130 246 / 0.25) 1px, transparent 1px) !important;
+}
+
+/* ---- Surfaces ---------------------------------------------------------- */
+/* bg-white shares a variable with text-white (used on buttons), so override
+   the class itself instead of remapping --color-white */
+.dark .bg-white {
+  background-color: var(--fc-surface);
+}
+html.fc-app.dark input[type="file"]::file-selector-button {
+  background-color: var(--fc-surface);
+  color: var(--color-gray-700);
+}
+html.fc-app.dark input[type="file"]::file-selector-button:hover {
+  background-color: var(--color-gray-100);
+}
+/* Responsive surfaces need matching overrides: the plain bg-white selector
+   does not match lg:bg-white, and otherwise overrides lg:bg-transparent. */
+@media (min-width: 64rem) {
+  .dark .lg\:bg-white {
+    background-color: var(--fc-surface);
+  }
+  .dark .lg\:bg-transparent {
+    background-color: transparent;
+  }
+}
+.dark .bg-white\/80 {
+  background-color: rgb(36 37 38 / 0.8);
+}
+/* Floating layers (modals, chatbot, dropdowns) sit one step above cards. */
+.dark .bg-white.shadow-lg,
+.dark .bg-white.shadow-xl,
+.dark .bg-white.shadow-2xl {
+  background-color: var(--fc-raised);
+}
+/* Hover should lighten on dark; gray-50 is the page colour here. */
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--color-gray-100);
+}
+/* Scrims need more weight on a dark page. */
+.dark .bg-black\/40 {
+  background-color: rgb(0 0 0 / 0.6);
+}
+
+/* Notification dropdowns: neutral rows, with blue reserved for unread dots. */
+html.fc-app.dark .fc-notification-row {
+  background-color: var(--fc-raised);
+}
+html.fc-app.dark .fc-notification-row.bg-blue-50 {
+  background-color: var(--color-gray-100);
+}
+html.fc-app.dark .fc-notification-row:hover {
+  background-color: var(--color-gray-200);
+}
+
+/* ---- Solid fills --------------------------------------------------------
+   White text on Tailwind's 500s is only 2.3-3.8:1. The 600/700 steps clear
+   4.5:1 and glare less on a dark page. */
+.dark .bg-blue-500,
+.dark .bg-blue-600 {
+  background-color: var(--fc-brand, #2f5fbf);
+}
+.dark .hover\:bg-blue-600:hover,
+.dark .hover\:bg-blue-700:hover {
+  background-color: var(--fc-brand-hover, #3b6bcf);
+}
+.dark .bg-red-500,
+.dark .bg-red-600 {
+  background-color: #b93832;
+}
+.dark .hover\:bg-red-600:hover,
+.dark .hover\:bg-red-700:hover {
+  background-color: #cc4640;
+}
+.dark .bg-green-500,
+.dark .bg-green-600 {
+  background-color: #15803d;
+}
+.dark .hover\:bg-green-600:hover,
+.dark .hover\:bg-green-700:hover {
+  background-color: #166534;
+}
+
+/* Solid priority badges (admin table): white on yellow, purple and indigo was
+   1.7-4.5:1. Yellow takes dark text; the others get deeper fills. */
+.dark .bg-yellow-400 {
+  background-color: #facc15;
+  color: #1b1b1c;
+}
+.dark .bg-purple-500 {
+  background-color: #7c3aed;
+}
+.dark .bg-indigo-500 {
+  background-color: #4f46e5;
+}
+
+/* Active sidebar link and chatbot header: quiet blue tint instead of a solid
+   slab, matching the status chips. Placed after the solid-fill rules above
+   so it wins at equal specificity. */
+.dark .nav-active {
+  background-color: var(--color-blue-100);
+  color: var(--fc-accent, #7db4ff);
+}
+.dark .fc-chat-header {
+  background-color: var(--color-blue-100);
+  color: var(--fc-accent-strong, #bcd6ff);
+  border-bottom: 1px solid var(--color-blue-200);
+}
+.dark .fc-chat-header button {
+  color: inherit;
+}
+
+/* ---- Accent text ---------------------------------------------------------
+   Tailwind's 500-900 text colours are tuned for light surfaces. On dark use
+   two tiers: soft for icons and links, strong for text sitting on a tinted
+   fill (badges, alerts, toasts). All 6:1 or better on a card. */
+.dark .text-blue-500,
+.dark .text-blue-600 {
+  color: var(--fc-accent, #7db4ff);
+}
+.dark .text-blue-700,
+.dark .text-blue-800,
+.dark .text-blue-900,
+.dark .hover\:text-blue-600:hover,
+.dark .hover\:text-blue-700:hover {
+  color: var(--fc-accent-strong, #bcd6ff);
+}
+.dark .text-red-500,
+.dark .text-red-600 {
+  color: #f87171;
+}
+.dark .text-red-700,
+.dark .text-red-800,
+.dark .text-red-900 {
+  color: #fca5a5;
+}
+.dark .text-green-500,
+.dark .text-green-600 {
+  color: #4ade80;
+}
+.dark .text-green-700,
+.dark .text-green-800,
+.dark .text-green-900 {
+  color: #86efac;
+}
+.dark .text-yellow-600,
+.dark .text-yellow-700,
+.dark .text-yellow-800,
+.dark .text-amber-600,
+.dark .text-amber-700,
+.dark .text-amber-800 {
+  color: #fcd34d;
+}
+.dark .text-orange-500,
+.dark .text-orange-600 {
+  color: #fb923c;
+}
+.dark .text-orange-700,
+.dark .text-orange-800 {
+  color: #fdba74;
+}
+.dark .text-sky-500,
+.dark .text-sky-600 {
+  color: #38bdf8;
+}
+.dark .text-sky-700,
+.dark .text-sky-800 {
+  color: #7dd3fc;
+}
+.dark .text-purple-600,
+.dark .text-purple-700 {
+  color: #c4b5fd;
+}
+.dark .text-indigo-600,
+.dark .text-indigo-700 {
+  color: #a5b4fc;
+}
+
+/* Browsers paint autofilled fields pale; match the inset field colour. */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-gray-50) inset;
+  box-shadow: 0 0 0 1000px var(--color-gray-50) inset;
+  -webkit-text-fill-color: var(--color-gray-800);
+  caret-color: var(--color-gray-800);
+}
+
+/* Light / Dark / System buttons: highlight the active choice.
+   Driven by <html data-theme-choice="...">, so it also works inside
+   AJAX-loaded partials without any extra JS. */
+html[data-theme-choice="light"] [data-theme-choice="light"],
+html[data-theme-choice="dark"] [data-theme-choice="dark"],
+html[data-theme-choice="system"] [data-theme-choice="system"] {
+  background: #0f4c81;
+  color: #fff;
+  border-color: #0f4c81;
+}
+
+/* Dark: the selected theme is a state, not an action, so it gets the same
+   quiet tint as the active nav link instead of a solid blue block. The extra
+   .dark class makes this win over the rule above regardless of order. */
+html.dark[data-theme-choice="light"] [data-theme-choice="light"],
+html.dark[data-theme-choice="dark"] [data-theme-choice="dark"],
+html.dark[data-theme-choice="system"] [data-theme-choice="system"] {
+  background: var(--color-blue-100);
+  color: var(--fc-accent, #7db4ff);
+  border-color: var(--color-blue-200);
+}
+
+/* ==========================================================================
+   QUIET DARK (Facebook-style): separate by lightness, not outlines, and keep
+   colour for things that need it. Cards, chips and the sidebar lose their
+   borders (transparent, so layout does not shift). Inputs, selects and
+   buttons keep theirs: the border is their affordance. Cards are matched as
+   .bg-white + rounded-2xl/3xl + .border, which no input or button uses.
+   ========================================================================== */
+.dark .bg-white.rounded-2xl.border,
+.dark .bg-white.rounded-3xl.border,
+.dark aside.border-r {
+  border-color: transparent;
+}
+/* Linked cards lose their coloured hover border, so lift the surface instead. */
+.dark a.bg-white.rounded-2xl:hover {
+  background-color: var(--fc-raised);
+}
+/* Chips keep their tinted fill and text; the outline goes. */
+.dark span.rounded-full.border {
+  border-color: transparent;
+}
+/* Role pill is identity, not state: neutral grey. */
+.dark .role-pill {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+/* App identity: the logo carries the blue; name and role stay neutral. */
+html.fc-app.dark aside h1.text-primary,
+html.fc-app.dark header h1.text-primary {
+  color: var(--color-gray-900);
+}
+
+html.fc-app.dark aside .role-pill {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-500);
+}
+
+/* Disabled actions are neutral, not translucent blue. Explicit state colours
+   stay consistent on cards and floating surfaces; enabled actions remain blue. */
+html.fc-app.dark button:disabled {
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-400);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Form fields share one inset surface, including custom dropdown triggers. */
+html.fc-app.dark input.bg-gray-50,
+html.fc-app.dark textarea.bg-gray-50,
+html.fc-app.dark select.bg-gray-50 {
+  background-color: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-700);
+}
+
+/* Safety net: any text field, whatever light fill its classes ask for
+   (bg-white, bg-slate-50, a bare default), gets the same inset surface, so no
+   field can stay light on a dark page. Only the fill is set here; borders and
+   text colours still come from the (already remapped) utility classes, so
+   error states keep their colour. Transparent fields that sit inside a styled
+   wrapper, the hidden CDD select and error-tinted fields are left alone. */
+html.fc-app.dark :is(input, textarea, select):not(
+    [type="checkbox"], [type="radio"], [type="file"], [type="hidden"],
+    [type="submit"], [type="button"], [type="reset"], [type="range"],
+    [type="color"], [type="image"], .bg-transparent, [data-cdd-enhanced],
+    [aria-invalid="true"], [class*="bg-red-"], .sr-only
+  ) {
+  background-color: var(--color-gray-50);
+}
+html.fc-app.dark :is(input, textarea, select):is(:disabled, [readonly]):not(.sr-only, [type="hidden"]) {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-400);
+}
+/* Placeholders: placeholder-gray-300 would be near-invisible on the dark inset. */
+html.fc-app.dark :is(input, textarea)::placeholder {
+  color: var(--color-gray-400);
+  opacity: 1;
+}
+/* Native option lists follow the field colours. */
+html.fc-app.dark select option {
+  background-color: var(--fc-raised);
+  color: var(--color-gray-700);
+}
+
+
+/* Skeleton loader — shimmer animation (Facebook-style placeholders) */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ===== Fac-Check Custom Dropdown (CDD) v1 =====
+   Hango sa .unit-dd-* ng report_detail.html. Opt-in: select na may data-cdd.
+   Sadyang nasa labas ng @layer para hindi matalo ng Tailwind utilities. */
+.cdd { position: relative; width: 100%; }
+
+.cdd > select[data-cdd-enhanced] {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.cdd-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 4px;
+  padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff;
+  font-family: inherit; font-size: 0.875rem; line-height: 1.25rem; color: #374151;
+  text-align: left; cursor: pointer;
+}
+.cdd-btn:focus, .cdd-btn.open { outline: none; box-shadow: 0 0 0 2px var(--fc-brand, #3b82f6); }
+.cdd-btn svg { width: 14px; height: 14px; flex-shrink: 0; color: #9ca3af; }
+.cdd-btn:disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+.cdd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdd-label.placeholder { color: #9ca3af; }
+
+.cdd-list {
+  display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 50;
+  width: max-content; min-width: max(100%, 9rem); max-width: min(24rem, calc(100vw - 32px));
+  max-height: 14rem; overflow-y: auto; scrollbar-width: thin;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); padding: 6px;
+}
+.cdd-list.show { display: block; }
+.cdd-list.up { top: auto; bottom: calc(100% + 6px); }
+
+.cdd-item {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border: 0; border-radius: 10px;
+  font-family: inherit; font-size: 0.875rem; line-height: 1.25rem; color: #374151;
+  background: transparent; text-align: left; cursor: pointer;
+}
+.cdd-item:hover, .cdd-item.active { background: var(--fc-brand, #2563eb); color: #fff; }
+.cdd-item.selected { font-weight: 600; }
+.cdd-item .chk { visibility: hidden; width: 16px; height: 16px; color: var(--fc-brand, #2563eb); flex-shrink: 0; }
+.cdd-item.selected .chk { visibility: visible; }
+.cdd-item:hover .chk, .cdd-item.active .chk { color: #fff; }
+.cdd-item[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+.cdd-item[aria-disabled="true"]:hover { background: transparent; color: #374151; }
+
+.cdd.invalid .cdd-btn { border-color: #ef4444; }
+.cdd.invalid .cdd-btn:focus, .cdd.invalid .cdd-btn.open { box-shadow: 0 0 0 2px #fca5a5; }
+
+/* Mga size at variant (gagamitin sa Phase 3 at 4) */
+.cdd-lg .cdd-btn { padding: 14px 16px; border-radius: 16px; }
+.profile-department .cdd-btn { padding: 10px 16px; border-radius: 12px; }
+.cdd-transparent .cdd-btn { background: transparent; border-color: transparent; padding-left: 0; padding-right: 0; }
+.cdd-transparent .cdd-btn:focus, .cdd-transparent .cdd-btn.open { box-shadow: none; }
+
+/* Maliit na variant (mobile filters) */
+.cdd-sm .cdd-btn { padding: 8px 10px; font-size: 0.75rem; line-height: 1rem; }
+.cdd-sm .cdd-item { padding: 7px 10px; font-size: 0.75rem; line-height: 1rem; }
+
+/* Locked (AI category) at disabled (floor/room na hindi pa available).
+   pointer-events none para ang click ay mapunta sa wrapper ng page (hint/flash). */
+.cdd-btn:disabled { pointer-events: none; }
+.cdd-btn.locked { background: #f3f4f6; cursor: not-allowed; pointer-events: none; }
+.cdd:has(.cdd-btn:disabled, .cdd-btn.locked) { cursor: not-allowed; }
+
+/* Kapag may sariling chevron icon ang page sa tabi ng select, itago ito (may chevron na ang .cdd) */
+.cdd + div.pointer-events-none.absolute { display: none; }
+
+/* Custom dropdowns share the dark surfaces and text palette. */
+html.dark .cdd-btn {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-200);
+  color: var(--color-gray-700);
+}
+html.dark .cdd-btn svg,
+html.dark .cdd-label.placeholder {
+  color: var(--color-gray-400);
+}
+html.dark .cdd-btn:focus,
+html.dark .cdd-btn.open {
+  box-shadow: 0 0 0 2px var(--fc-accent, #7db4ff);
+}
+html.dark .cdd-btn:disabled,
+html.dark .cdd-btn.locked {
+  background: var(--color-gray-50);
+  color: var(--color-gray-400);
+}
+html.dark .cdd-list {
+  background: var(--fc-raised);
+  border-color: var(--color-gray-200);
+}
+html.dark .cdd-item {
+  color: var(--color-gray-700);
+}
+html.dark .cdd-item:hover,
+html.dark .cdd-item.active {
+  background: var(--color-blue-100);
+  color: var(--fc-accent-strong, #bcd6ff);
+}
+html.dark .cdd-item .chk {
+  color: var(--fc-accent, #7db4ff);
+}
+html.dark .cdd-item:hover .chk,
+html.dark .cdd-item.active .chk {
+  color: var(--fc-accent-strong, #bcd6ff);
+}
+html.dark .cdd-item[aria-disabled="true"]:hover,
+html.dark .cdd-item[aria-disabled="true"].active {
+  background: transparent;
+  color: var(--color-gray-700);
+}
+html.dark .cdd-transparent .cdd-btn {
+  background: transparent;
+  border-color: transparent;
+}
+html.dark .cdd-transparent .cdd-btn:focus,
+html.dark .cdd-transparent .cdd-btn.open {
+  box-shadow: none;
+}
+html.dark .cdd.invalid .cdd-btn {
+  border-color: #f87171;
+}
+html.dark .cdd.invalid .cdd-btn:focus,
+html.dark .cdd.invalid .cdd-btn.open {
+  box-shadow: 0 0 0 2px #fca5a5;
+}
+
+/* must come after .skeleton so it wins */
+/* One focus treatment for app fields and dropdowns. Composite password
+   fields keep the ring on their wrapper, never on the transparent input. */
+html.fc-app {
+  --fc-focus-color: var(--fc-brand);
+}
+html.fc-app.dark {
+  --fc-focus-color: var(--fc-accent);
+}
+html.fc-app :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not(.bg-transparent):not([data-cdd-enhanced]),
+  textarea,
+  select:not([data-cdd-enhanced])
+):not([aria-invalid="true"]):focus,
+html.fc-app .focus-within\:ring-2:not(:has([aria-invalid="true"])):focus-within,
+html.fc-app .cdd:not(.invalid):not(.cdd-transparent) .cdd-btn:not(:disabled):not(.locked):is(:focus, .open) {
+  outline: none;
+  border-color: var(--fc-focus-color);
+  box-shadow: 0 0 0 2px var(--fc-focus-color);
+}
+
+html.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-100) 25%,
+    var(--color-gray-200) 50%,
+    var(--color-gray-100) 75%
+  );
+  background-size: 200% 100%;
+}

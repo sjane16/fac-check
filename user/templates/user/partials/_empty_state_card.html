@@ -1,0 +1,25 @@
+{% load static %}
+<div class="mx-auto max-w-xs">
+    <div class="relative bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
+        <!-- Decorative dot -->
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-6 h-6 text-gray-400"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="1.5"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+        <!-- Message -->
+        <div class="text-center -mt-1">
+            <p class="text-base font-bold text-gray-900">{{ title }}</p>
+            <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">{{ subtitle }}</p>
+        </div>
+    </div>
+</div>

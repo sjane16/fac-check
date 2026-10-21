@@ -1,0 +1,19 @@
+{% if messages %}
+    <div class="fixed top-5 right-5 z-[9999] w-80 space-y-3 max-lg:left-4 max-lg:right-4 max-lg:w-auto">
+        {% for message in messages %}
+            <div class="toast-message flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700 {% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700 {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-700 {% else %}bg-blue-50 border-blue-200 text-blue-700 {% endif %}">
+                <div class="min-w-0 flex-1 text-sm font-medium break-words">{{ message }}</div>
+                <button type="button"
+                        onclick="this.closest('.toast-message').remove()"
+                        class="shrink-0 text-current opacity-60 hover:opacity-100">✕</button>
+            </div>
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll(".toast-message").forEach((toast) => {
+                toast.remove();
+            });
+        }, 3500);
+    </script>
+{% endif %}

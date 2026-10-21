@@ -1,0 +1,119 @@
+/*
+ * Shared progress indicator for account creation (3 steps).
+ * Markup: accounts/components/signup_progress.html
+ * Used by: signup.html (steps 1-2, toggled by JS) and verify_otp.html (step 3).
+ */
+
+.fc-signup-progress {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 0 20px;
+    padding: 0;
+    list-style: none;
+}
+
+.fc-signup-progress li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #526277;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.fc-progress-back {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+.fc-progress-back:disabled { cursor: default; opacity: 1; }
+.fc-progress-back:not(:disabled):hover > span:last-child { text-decoration: underline; text-underline-offset: 3px; }
+.fc-progress-back:focus-visible { outline: 2px solid #0f4c81; outline-offset: 4px; }
+html.dark .fc-progress-back:focus-visible { outline-color: #7db4ff; }
+
+/* Connector line between two steps */
+.fc-signup-progress li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: calc(50% + 20px);
+    width: calc(100% - 32px);
+    height: 2px;
+    background: #dce5f1;
+}
+
+/* Written with the same :not(:last-child) so it outranks the rule above.
+   The old `.is-complete::after` selector lost on specificity and never turned blue. */
+.fc-signup-progress li.is-complete:not(:last-child)::after {
+    background: #15803d;
+}
+
+.fc-step-number {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #dce5f1;
+    border-radius: 50%;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Current step */
+.fc-signup-progress [aria-current="step"] {
+    color: #0f4c81;
+    font-weight: 600;
+}
+
+.fc-signup-progress [aria-current="step"] .fc-step-number {
+    border-color: #0f4c81;
+    background: #0f4c81;
+    color: #fff;
+}
+
+/* Finished step: green means done; navy stays reserved for the current step */
+.fc-signup-progress .is-complete {
+    color: #166534;
+}
+
+.fc-signup-progress .is-complete .fc-step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-color: #15803d;
+    background: #15803d;
+    font-size: 0;
+}
+
+.fc-signup-progress .is-complete .fc-step-number::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 12.5l5 5L19.5 7'/%3E%3C/svg%3E");
+    animation: fc-check-in .22s ease-out;
+}
+
+@keyframes fc-check-in {
+    from { transform: scale(.6); opacity: 0; }
+    to   { transform: scale(1);  opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fc-signup-progress .is-complete .fc-step-number::before {
+        animation: none;
+    }
+}

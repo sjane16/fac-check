@@ -1,0 +1,92 @@
+/* Shared navigation and the compact recovery-page shell. */
+.fc-account-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px;
+  border-radius: 8px;
+  color: #526579;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color .15s;
+}
+.fc-account-return svg { width: 15px; height: 15px; flex: none; }
+.fc-signup-card .fc-account-return,
+.fc-policy-card .fc-account-return,
+.fc-policy-footer .fc-account-return { color: #526579; }
+.fc-account-return:hover { color: #0f4c81; text-decoration: underline; text-underline-offset: 3px; }
+.fc-signup-card .fc-account-return:hover,
+.fc-policy-card .fc-account-return:hover,
+.fc-policy-footer .fc-account-return:hover { color: #0f4c81; }
+.fc-account-return:focus-visible { outline: 2px solid #0f4c81; outline-offset: 3px; }
+html.dark .fc-account-return { color: #b0b3b8; }
+html.dark .fc-signup-card .fc-account-return,
+html.dark .fc-policy-card .fc-account-return,
+html.dark .fc-policy-footer .fc-account-return { color: #b0b3b8; }
+html.dark .fc-account-return:hover { color: #e4e6eb; }
+html.dark .fc-signup-card .fc-account-return:hover,
+html.dark .fc-policy-card .fc-account-return:hover,
+html.dark .fc-policy-footer .fc-account-return:hover { color: #e4e6eb; }
+html.dark .fc-account-return:focus-visible { outline-color: #7db4ff; }
+
+body.fc-recovery-page {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 16px;
+  background: linear-gradient(160deg, #fbfdff 15%, #eef4fc 100%);
+  color: #18324b;
+  font-family: Poppins, sans-serif;
+}
+body.fc-recovery-page .fc-grid,
+body.fc-recovery-page .fc-blob,
+body.fc-recovery-page .fc-crop,
+body.fc-recovery-page .login_title { display: none; }
+body.fc-recovery-page > form {
+  width: 100%;
+  max-width: 440px;
+  margin: auto 0;
+  padding: 24px 32px 28px;
+  border: 1px solid #e5edf7;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 48px rgba(15, 76, 129, .08);
+}
+body.fc-recovery-page > form .fc-account-return { margin: -8px 0 8px; }
+body.fc-recovery-page > form h1 { color: #0f4c81; font-size: 22px; letter-spacing: -.03em; }
+body.fc-recovery-page > form h1 + p { color: #526277; }
+body.fc-recovery-page > form input { min-width: 0; width: 100%; }
+body.fc-recovery-page > form .bg-slate-50 {
+  min-height: 46px;
+  border-color: #dce5f1;
+  background: #f8faff;
+}
+body.fc-recovery-page > form .bg-slate-50:focus-within {
+  border-color: #0f4c81;
+  box-shadow: 0 0 0 3px rgba(15, 76, 129, .13);
+}
+body.fc-recovery-page > form button[type="submit"] { background: #0f4c81; }
+body.fc-recovery-page > form button[type="submit"]:hover { background: #0d3f6b; }
+body.fc-recovery-page > footer { color: #526277; text-align: center; }
+html.dark body.fc-recovery-page { background: #18191a; color: #e4e6eb; }
+html.dark body.fc-recovery-page > form { background: #242526; border-color: #3e4042; box-shadow: 0 16px 48px rgba(0, 0, 0, .35); }
+html.dark body.fc-recovery-page > form h1 { color: #e4e6eb; }
+html.dark body.fc-recovery-page > form h1 + p,
+html.dark body.fc-recovery-page > footer { color: #b0b3b8; }
+html.dark body.fc-recovery-page > form .bg-slate-50 { background: #18191a; border-color: #4e5052; }
+html.dark body.fc-recovery-page > form .bg-slate-50:focus-within { border-color: #7db4ff; box-shadow: 0 0 0 3px rgba(125, 180, 255, .2); }
+html.dark body.fc-recovery-page > form button[type="submit"] { background: #2f5fbf; }
+html.dark body.fc-recovery-page > form button[type="submit"]:hover { background: #3b6bcf; }
+@media (max-width: 480px) {
+  body.fc-recovery-page > form { padding: 20px 24px 24px; border-radius: 20px; }
+  body.fc-recovery-page > form input { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-account-return { transition: none; }
+}

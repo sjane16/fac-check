@@ -1,0 +1,35 @@
+{% load static tailwind_tags %} {% tailwind_css %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login</title>
+  </head>
+  <body class="bg-gradient-to-t from-emerald-50 to-blue-200 min-h-screen flex flex-col items-center justify-center font-sans text-black">
+    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
+      <h2 class="text-2xl font-semibold mb-6 text-center">Administrator Login</h2>
+      <form method="POST">
+        {% csrf_token %}
+        <label class="block text-sm font-medium mb-1">Username</label>
+        <input
+          type="text"
+          name="username"
+          class="w-full p-3 bg-slate-50 border border-slate-500 rounded-xl mb-4 outline-none text-sm"
+        />
+        <label class="block text-sm font-medium mb-1">Password</label>
+        <input
+          type="password"
+          name="password"
+          class="w-full p-3 bg-slate-50 border border-slate-500 rounded-xl mb-6 outline-none text-sm"
+        />
+        <button
+          type="submit"
+          class="w-full bg-blue-600 p-3 rounded-xl text-white font-medium"
+        >
+          Log In
+        </button>
+      </form>
+    </div>
+  </body>
+</html>

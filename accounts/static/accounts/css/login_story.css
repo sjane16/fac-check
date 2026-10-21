@@ -1,0 +1,52 @@
+/* Angular linework on the brand-blue canvas. */
+.fc-login-story { position: relative; isolation: isolate; overflow: hidden; min-width: 0; background: #0f4c81; color: #fff; }
+/* Static monochrome film grain, confined to the geometric panel. */
+.fc-login-story::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .65;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='grain' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+  background-size: 270px 270px;
+}
+.fc-login-story .fc-login-tagline { z-index: 1; }
+.fc-login-geometry { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.fc-login-story .fc-login-tagline { position: absolute; bottom: 32px; left: 32px; right: 32px; margin: 0; color: #e2eff9; text-align: center; font-size: 14px; font-weight: 400; letter-spacing: .01em; }
+.fc-login-logo-link { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 8px; }
+.fc-login-logo-link img { display: block; width: 45px; height: 54px; object-fit: contain; }
+.fc-login-logo-link:focus-visible, .fc-login-return:focus-visible { outline: 2px solid #0f4c81; outline-offset: 3px; }
+#login-title, #login-title + p { text-align: center; }
+main > section[aria-labelledby="login-title"] { min-width: 0; }
+section[aria-labelledby="login-title"] form input { min-width: 0; width: 100%; }
+.fc-login-return { align-self: flex-start; margin-left: -8px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border-radius: 8px; color: #526579; font-size: 13px; text-decoration: none; transition: color .15s; }
+.fc-login-return:hover { color: #0f4c81; text-decoration: underline; text-underline-offset: 3px; }
+.fc-login-return svg { width: 15px; height: 15px; }
+@media (max-width: 1023px) {
+  main:has(> .fc-login-story) { grid-template-columns: minmax(0, 1fr); }
+  .fc-login-story { display: none; }
+}
+
+/* Keep the whole sign-in composition visible on typical laptop screens. */
+main > section[aria-labelledby="login-title"] { padding-block: 20px; }
+section[aria-labelledby="login-title"] form { padding-block: 12px; }
+.fc-login-logo-link { width: 56px; height: 56px; margin-bottom: 12px; }
+.fc-login-logo-link img { width: 42px; height: 50px; }
+section[aria-labelledby="login-title"] .fc-login-fields { margin-top: 36px; }
+section[aria-labelledby="login-title"] .fc-login-signup { margin-top: 20px; }
+section[aria-labelledby="login-title"] [role="separator"] { margin-block: 12px; }
+section[aria-labelledby="login-title"] footer { flex-shrink: 0; }
+.fc-login-return { margin-bottom: 0; }
+@media (max-height: 760px) {
+  main > section[aria-labelledby="login-title"] { padding-block: 12px; }
+  section[aria-labelledby="login-title"] form { padding-block: 4px; }
+  .fc-login-logo-link { margin-bottom: 8px; }
+  section[aria-labelledby="login-title"] .fc-login-fields { margin-top: 28px; }
+  section[aria-labelledby="login-title"] .fc-login-signup { margin-top: 16px; }
+}
+
+/* Optical centering: sit the form slightly above true center on taller screens. */
+@media (min-height: 800px) {
+  section[aria-labelledby="login-title"] form { padding-bottom: 80px; }
+}

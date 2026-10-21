@@ -1,0 +1,1270 @@
+{% extends "layouts/base.html" %} {% block title %}Home{% endblock %}
+{% load static %}
+<!---->
+{% block content %}
+    <!---->
+    {% include "user/components/toast.html" %}
+    <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-24 lg:pb-10 w-full">
+        {% include "accounts/components/passkey_setup_prompt.html" %}
+            <div class="mb-6">
+                <h1 class="text-xl font-bold text-gray-900 leading-tight">Hello, {{ user.first_name }} {{ user.last_name }}! </h1>
+                <p class="text-base text-gray-600 pt-2">Monitor and manage facility maintenance easily.</p>
+            </div>
+            <div id="dashboardButtonsSkeleton" class="flex items-center gap-2 mb-6">
+                <div class="skeleton h-3 w-14 rounded"></div>
+                <div class="skeleton h-7 w-24 rounded-full"></div>
+                <div class="skeleton h-7 w-24 rounded-full"></div>
+                <div class="skeleton h-7 w-20 rounded-full"></div>
+            </div>
+            <div id="dashboardSkeleton"
+                 class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                {% for n in "12" %}
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                        <div class="skeleton h-4 w-48 rounded mb-4"></div>
+                        <div class="skeleton h-[300px] w-full rounded-xl"></div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div id="dashboardSkeletonRow2">
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-4">
+                    <div class="skeleton h-4 w-48 rounded mb-4"></div>
+                    <div class="skeleton h-[300px] w-full rounded-xl"></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                    {% for n in "123" %}
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <div class="skeleton h-4 w-48 rounded mb-4"></div>
+                            <div class="skeleton h-[300px] w-full rounded-xl"></div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="dashboardContainer" class="hidden"></div>
+        </main>
+        {% if is_head_admin %}
+        <div id="reportModal"
+             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="reportModalTitle">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center gap-4">
+                        <h3 id="reportModalTitle"
+                            class="text-base font-semibold text-gray-800">Monthly Report Preview</h3>
+                        <label for="reportMonthPicker" class="text-sm text-gray-500">Month</label>
+                        <input type="month"
+                               id="reportMonthPicker"
+                               class="h-10 min-w-[11rem] px-3 rounded-md border border-gray-300 bg-white text-gray-900 text-sm font-medium"
+                               aria-label="Select report month" />
+                    </div>
+                    <button type="button"
+                            id="reportModalClose"
+                            class="text-gray-400 hover:text-gray-600 text-xl leading-none"
+                            aria-label="Close">×</button>
+                </div>
+                <div class="flex-1 min-h-0 flex flex-col lg:flex-row p-4 overflow-y-auto lg:overflow-hidden">
+                    <div class="relative flex-1 min-h-[50vh] lg:min-h-0 border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                        <div id="reportPreviewLoading"
+                             class="absolute inset-0 flex items-center justify-center text-sm text-gray-500 bg-white/80">
+                            Generating preview...
+                        </div>
+                        <iframe id="reportPreviewFrame"
+                                title="Monthly report preview"
+                                class="w-full h-full"></iframe>
+                    </div>
+                    <div id="reportEditPanel"
+                         inert
+                         aria-hidden="true"
+                         class="shrink-0 w-full lg:w-0 max-h-0 lg:max-h-none opacity-0 overflow-hidden transition-all duration-300 ease-in-out">
+                        <div class="flex flex-col gap-2 h-full pt-4 lg:pt-0 lg:pl-4 lg:w-[25rem]">
+                            <label for="reportSummaryText" class="text-sm font-semibold text-gray-700">Summary</label>
+                            <p class="text-xs text-gray-500">
+                                This is a system-suggested summary and may be edited freely. Press Enter twice to start a new paragraph. If left blank, the Summary section will be omitted from the PDF.
+                            </p>
+                            <textarea id="reportSummaryText"
+                                      maxlength="3000"
+                                      class="flex-1 min-h-[220px] w-full rounded-lg border border-gray-300 p-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            <p id="reportModalError" class="hidden text-xs text-red-600"></p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button"
+                                        id="reportSummaryReset"
+                                        class="text-xs text-blue-600 hover:underline">Reset to system summary</button>
+                                <button type="button"
+                                        id="reportUpdatePreview"
+                                        class="ml-auto px-4 py-1.5 rounded-full text-xs font-medium border border-blue-600 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Update Preview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 px-6 py-3 border-t border-gray-200">
+                    <button type="button"
+                            id="reportEdit"
+                            class="px-4 py-1.5 rounded-full text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50">
+                        Edit Summary
+                    </button>
+                    <button type="button"
+                            id="reportDownload"
+                            class="px-4 py-1.5 rounded-full text-xs font-medium border border-blue-600 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="reportChartStage"
+             aria-hidden="true"
+             style="position:fixed;
+                    left:-10000px;
+                    top:0;
+                    visibility:hidden;
+                    pointer-events:none">
+            <div style="position:relative; width:240px; height:240px;">
+                <canvas id="report_statusChart"></canvas>
+            </div>
+            <div style="position:relative; width:240px; height:240px;">
+                <canvas id="report_categoriesChart"></canvas>
+            </div>
+            <div style="position:relative; width:640px; height:300px;">
+                <canvas id="report_buildingChart"></canvas>
+            </div>
+            <div style="position:relative; width:640px; height:300px;">
+                <canvas id="report_resolutionChart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+        <style>
+            /* Dashboard actions row: mobile = button first (full width), then Showing + pills on one row */
+            #dashboardActionsRow {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .dashboard-generate-btn {
+                width: 100%;
+                margin-bottom: 12px;
+            }
+
+            .dashboard-period-group {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            .dashboard-period-group .period-filter-btn {
+                flex: 1 1 0;
+                min-width: 0;
+                white-space: nowrap;
+                padding-left: 6px;
+                padding-right: 6px;
+                font-size: 11px;
+            }
+
+            .dashboard-period-group>span {
+                flex-shrink: 0;
+            }
+
+            @media (min-width: 1024px) {
+                #dashboardActionsRow {
+                    flex-direction: row-reverse;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+
+                .dashboard-generate-btn {
+                    width: auto;
+                }
+
+                .dashboard-period-group {
+                    justify-content: flex-start;
+                    gap: 8px;
+                }
+
+                .dashboard-period-group .period-filter-btn {
+                    flex: none;
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    font-size: 12px;
+                }
+            }
+
+            #reportMonthPicker {
+                color: var(--color-gray-900, #111827);
+                background-color: var(--fc-surface, #ffffff);
+                opacity: 1;
+            }
+
+            #reportMonthPicker::-webkit-calendar-picker-indicator {
+                opacity: 1;
+                cursor: pointer;
+                filter: none;
+            }
+
+            .report-status-card {
+                min-width: 0;
+            }
+
+            .report-status-content {
+                gap: 24px;
+                padding-top: 16px;
+            }
+
+            .status-chart-frame {
+                position: relative;
+                width: min(100%, 240px);
+                min-height: 0;
+                aspect-ratio: 1 / 1;
+                align-self: center;
+            }
+
+            .status-chart-frame>canvas {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .status-chart-frame[data-empty="true"]::before {
+                content: "";
+                position: absolute;
+                inset: 5px;
+                border-radius: 50%;
+                background: var(--color-gray-200, #e2e8f0);
+            }
+
+            .status-chart-frame[data-empty="true"]::after {
+                content: "";
+                position: absolute;
+                inset: calc(17.5% + 3.25px);
+                border-radius: 50%;
+                background: var(--fc-surface, white);
+            }
+
+            .status-chart-total {
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+            }
+
+            .status-chart-total strong {
+                max-width: 55%;
+                overflow-wrap: anywhere;
+                text-align: center;
+                font-size: clamp(20px, 2.5vw, 32px);
+                font-weight: 700;
+                line-height: 1.1;
+                color: var(--color-gray-900, #111827);
+                font-variant-numeric: tabular-nums;
+            }
+
+            .status-chart-total>span {
+                margin-top: 4px;
+                font-size: 12px;
+                color: var(--color-gray-500, #6b7280);
+            }
+
+            #statusLegend {
+                flex: 1;
+                min-width: 0;
+                margin: 0;
+                align-self: stretch;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .status-legend-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 5px 0;
+            }
+
+            .status-legend-row:last-child {
+                border-bottom: 0;
+            }
+
+            .status-legend-row dt {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-width: 0;
+                font-size: 14px;
+                color: var(--color-gray-700, #374151);
+            }
+
+            .status-legend-dot {
+                width: 8px;
+                height: 8px;
+                flex-shrink: 0;
+                border-radius: 50%;
+            }
+
+            .status-legend-row dd {
+                margin: 0;
+                flex-shrink: 0;
+                display: grid;
+                grid-template-columns: 20px 20px;
+                align-items: baseline;
+                column-gap: 8px;
+                text-align: right;
+                font-variant-numeric: tabular-nums;
+            }
+
+            .status-legend-row dd strong {
+                display: block;
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--color-gray-900, #111827);
+            }
+
+            .status-legend-row dd>span {
+                display: block;
+                font-size: 12px;
+                color: var(--color-gray-500, #6b7280);
+            }
+
+            #categoriesLegend {
+                flex: 1;
+                min-width: 0;
+                margin: 0;
+                align-self: stretch;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            #categoriesLegend .status-legend-row {
+                border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+            }
+
+            #categoriesLegend .status-legend-row:last-child {
+                border-bottom: 0;
+            }
+
+            #categoriesLegend dt {
+                overflow-wrap: anywhere;
+            }
+
+
+
+            @media (min-width: 1024px) {
+                .status-chart-frame {
+                    flex: 0 1 45%;
+                    max-width: 240px;
+                }
+            }
+        </style>
+        <script src="{% static 'accounts/js/passkeys.js' %}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            let dashboardCharts = {};
+            const reportCsrfToken = "{{ csrf_token }}";
+            const reportPdfUrl = "{% url 'export_dashboard_report_pdf' %}";
+            const reportSummaryUrl = "{% url 'dashboard_report_summary' %}";
+
+            function updateReportButton(data, period) {
+                const btn = document.getElementById("generateReportBtn");
+                if (!btn) return;
+
+                btn.disabled = !data.can_generate_report;
+                btn.title = data.can_generate_report ?
+                    "Generate the monthly dashboard report (PDF)" :
+                    `Available on ${data.report_available_on}`;
+            }
+
+            function chartImageWithCenter(chart, value, label) {
+                const src = chart.canvas;
+                const out = document.createElement("canvas");
+                out.width = src.width;
+                out.height = src.height;
+
+                const ctx = out.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, out.width, out.height);
+                ctx.drawImage(src, 0, 0);
+
+                const ratio = src.width / chart.width;
+                const area = chart.chartArea;
+                const cx = ((area.left + area.right) / 2) * ratio;
+                const cy = ((area.top + area.bottom) / 2) * ratio;
+                const diameter = Math.min(area.right - area.left, area.bottom - area.top) * ratio;
+
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#111827";
+                ctx.font = `bold ${Math.round(diameter * 0.2)}px Arial, sans-serif`;
+                ctx.fillText(String(value), cx, cy - diameter * 0.04);
+                ctx.fillStyle = "#6b7280";
+                ctx.font = `${Math.round(diameter * 0.07)}px Arial, sans-serif`;
+                ctx.fillText(label, cx, cy + diameter * 0.12);
+
+                return out.toDataURL("image/png");
+            }
+
+            let dashboardReportBlobUrl = null;
+            let dashboardReportSystemSummary = "";
+            let dashboardReportCharts = null;
+
+            function getSelectedReportMonth() {
+                const monthPicker = document.getElementById("reportMonthPicker");
+                return monthPicker && monthPicker.value ? monthPicker.value : "";
+            }
+
+            function fetchDashboardData(period, reportMonth) {
+                const url = new URL("{% url 'adm_dashboard_ajax' %}", window.location.origin);
+                url.searchParams.set("period", period);
+                if (reportMonth) {
+                    url.searchParams.set("report_month", reportMonth);
+                }
+                return fetch(url).then(function(response) {
+                    if (!response.ok) throw new Error(`Dashboard request failed (${response.status})`);
+                    return response.json();
+                });
+            }
+
+            function currentMonthValue() {
+                const d = new Date();
+                return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+            }
+
+            function buildDashboardReportCharts(charts) {
+                const statusTotal = charts.status.data.datasets[0].data
+                    .reduce((sum, count) => sum + count, 0);
+                const categoryCount = charts.categories.data.datasets[0].data
+                    .filter(count => count > 0).length;
+
+                return {
+                    chart_status: chartImageWithCenter(
+                        charts.status, statusTotal, statusTotal === 1 ? "report" : "reports"),
+                    chart_categories: chartImageWithCenter(
+                        charts.categories, categoryCount, categoryCount === 1 ? "category" : "categories"),
+                };
+            }
+
+            function renderReportChartsForMonth(reportMonth) {
+                return fetchDashboardData("30", reportMonth).then(function(data) {
+                    ["statusChart", "categoriesChart", "buildingChart", "resolutionChart"].forEach(function(id) {
+                        const old = Chart.getChart("report_" + id);
+                        if (old) old.destroy();
+                    });
+
+                    const charts = initAdminDashboardCharts(data, {
+                        report: true
+                    });
+                    try {
+                        return buildDashboardReportCharts(charts);
+                    } finally {
+                        Object.values(charts).forEach(function(chart) {
+                            chart.destroy();
+                        });
+                    }
+                });
+            }
+
+            function requestSystemSummary() {
+                let summaryUrl = reportSummaryUrl;
+                const selectedMonth = getSelectedReportMonth();
+                if (selectedMonth) {
+                    summaryUrl += "?report_month=" + encodeURIComponent(selectedMonth);
+                }
+                return fetch(summaryUrl, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error(`Summary request failed (${response.status})`);
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        return data.summary || "";
+                    });
+            }
+
+            function generateDashboardReport(btn) {
+                const label = document.getElementById("generateReportLabel");
+                const defaultText = "Generate Monthly Report";
+                const monthPicker = document.getElementById("reportMonthPicker");
+                if (monthPicker) monthPicker.value = currentMonthValue();
+                const selectedMonth = getSelectedReportMonth();
+
+                btn.disabled = true;
+                label.textContent = "Generating...";
+
+                renderReportChartsForMonth(selectedMonth)
+                    .then(function(images) {
+                        dashboardReportCharts = images;
+                        return requestSystemSummary();
+                    })
+                    .then(function(summaryText) {
+                        dashboardReportSystemSummary = summaryText;
+                        document.getElementById("reportSummaryText").value = dashboardReportSystemSummary;
+                        openDashboardReportModal();
+                        label.textContent = defaultText;
+                        btn.disabled = false;
+                        return requestDashboardReportPreview();
+                    })
+                    .catch(function(error) {
+                        console.error("Failed to generate dashboard report:", error);
+                        label.textContent = "Failed - try again";
+                        setTimeout(function() {
+                            label.textContent = defaultText;
+                            btn.disabled = false;
+                        }, 2500);
+                    });
+            }
+
+            function requestDashboardReportPreview() {
+                const loading = document.getElementById("reportPreviewLoading");
+                const errorEl = document.getElementById("reportModalError");
+                const updateBtn = document.getElementById("reportUpdatePreview");
+                const downloadBtn = document.getElementById("reportDownload");
+
+                const formData = new FormData();
+                Object.keys(dashboardReportCharts).forEach(function(key) {
+                    formData.append(key, dashboardReportCharts[key]);
+                });
+                formData.append("summary_text", document.getElementById("reportSummaryText").value);
+                var mp = document.getElementById('reportMonthPicker');
+                if (mp && mp.value) formData.append('report_month', mp.value);
+
+                loading.classList.remove("hidden");
+                errorEl.classList.add("hidden");
+                updateBtn.disabled = true;
+                downloadBtn.disabled = true;
+
+                return fetch(reportPdfUrl, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": reportCsrfToken
+                        },
+                        body: formData,
+                    })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error(`Report request failed (${response.status})`);
+                        return response.blob();
+                    })
+                    .then(function(blob) {
+                        if (dashboardReportBlobUrl) URL.revokeObjectURL(dashboardReportBlobUrl);
+                        dashboardReportBlobUrl = URL.createObjectURL(blob);
+                        document.getElementById("reportPreviewFrame").src = dashboardReportBlobUrl;
+                        downloadBtn.disabled = false;
+                    })
+                    .catch(function(error) {
+                        console.error("Failed to update report preview:", error);
+                        errorEl.textContent = "Unable to generate the preview. Please try again.";
+                        errorEl.classList.remove("hidden");
+                    })
+                    .finally(function() {
+                        loading.classList.add("hidden");
+                        updateBtn.disabled = false;
+                    });
+            }
+
+            function openDashboardReportModal() {
+                document.getElementById("reportModal").classList.remove("hidden");
+                document.documentElement.style.overflow = "hidden";
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeDashboardReport() {
+                document.getElementById("reportModal").classList.add("hidden");
+                resetReportEditPanel();
+                document.getElementById("reportPreviewFrame").removeAttribute("src");
+                if (dashboardReportBlobUrl) {
+                    URL.revokeObjectURL(dashboardReportBlobUrl);
+                    dashboardReportBlobUrl = null;
+                }
+                document.documentElement.style.overflow = "";
+                document.body.style.overflow = "";
+            }
+
+            function openReportEditPanel() {
+                const panel = document.getElementById("reportEditPanel");
+                panel.classList.remove("lg:w-0", "max-h-0", "opacity-0");
+                panel.classList.add("lg:w-[25rem]", "max-h-[70vh]", "opacity-100");
+                panel.removeAttribute("inert");
+                panel.setAttribute("aria-hidden", "false");
+                document.getElementById("reportEdit").textContent = "Hide Editor";
+                setTimeout(function() {
+                    document.getElementById("reportSummaryText").focus();
+                }, 320);
+            }
+
+            function resetReportEditPanel() {
+                const panel = document.getElementById("reportEditPanel");
+                panel.classList.remove("lg:w-[25rem]", "max-h-[70vh]", "opacity-100");
+                panel.classList.add("lg:w-0", "max-h-0", "opacity-0");
+                panel.setAttribute("inert", "");
+                panel.setAttribute("aria-hidden", "true");
+                document.getElementById("reportEdit").textContent = "Edit Summary";
+            }
+
+            function toggleReportEditPanel() {
+                const panel = document.getElementById("reportEditPanel");
+                if (panel.hasAttribute("inert")) {
+                    openReportEditPanel();
+                } else {
+                    resetReportEditPanel();
+                }
+            }
+
+            function downloadDashboardReport() {
+                if (!dashboardReportBlobUrl) return;
+                const a = document.createElement("a");
+                a.href = dashboardReportBlobUrl;
+                var mp = document.getElementById('reportMonthPicker');
+                var month = (mp && mp.value) ? mp.value : new Date().toISOString().slice(0, 7);
+                a.download = `Dashboard_Report_${month}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+
+            function initReportModal() {
+                if (!document.getElementById("reportModal")) return;
+                document.getElementById("reportModalClose").addEventListener("click", closeDashboardReport);
+                document.getElementById("reportEdit").addEventListener("click", toggleReportEditPanel);
+                document.getElementById("reportUpdatePreview").addEventListener("click", requestDashboardReportPreview);
+                document.getElementById("reportDownload").addEventListener("click", downloadDashboardReport);
+                document.getElementById("reportSummaryReset").addEventListener("click", function() {
+                    document.getElementById("reportSummaryText").value = dashboardReportSystemSummary;
+                });
+
+                // Initialize month picker behavior for report generation
+                var monthPickerEl = document.getElementById('reportMonthPicker');
+                if (monthPickerEl) {
+                    if (!monthPickerEl.value) monthPickerEl.value = currentMonthValue();
+                    let monthChangeSeq = 0;
+                    monthPickerEl.addEventListener('change', function() {
+                        const selectedMonth = getSelectedReportMonth();
+
+                        const modal = document.getElementById("reportModal");
+                        if (modal && !modal.classList.contains("hidden") && dashboardReportCharts && selectedMonth) {
+                            const seq = ++monthChangeSeq;
+                            const loading = document.getElementById("reportPreviewLoading");
+                            const errorEl = document.getElementById("reportModalError");
+
+                            loading.classList.remove("hidden");
+                            errorEl.classList.add("hidden");
+                            document.getElementById("reportUpdatePreview").disabled = true;
+                            document.getElementById("reportDownload").disabled = true;
+
+                            Promise.all([renderReportChartsForMonth(selectedMonth), requestSystemSummary()])
+                                .then(function(results) {
+                                    if (seq !== monthChangeSeq) return;
+                                    dashboardReportCharts = results[0];
+                                    dashboardReportSystemSummary = results[1];
+                                    document.getElementById("reportSummaryText").value = results[1];
+                                    return requestDashboardReportPreview();
+                                })
+                                .catch(function(error) {
+                                    console.error("Failed to refresh monthly report summary:", error);
+                                    if (seq !== monthChangeSeq) return;
+                                    loading.classList.add("hidden");
+                                    errorEl.textContent = "Unable to load this month. Please choose the month again.";
+                                    errorEl.classList.remove("hidden");
+                                });
+                        }
+                    });
+                }
+
+                document.addEventListener("keydown", function(e) {
+                    const modal = document.getElementById("reportModal");
+                    if (e.key === "Escape" && !modal.classList.contains("hidden")) closeDashboardReport();
+                });
+            }
+
+            function fetchDashboard(period, reportMonth) {
+                const dashboardButtonsSkeleton = document.getElementById("dashboardButtonsSkeleton");
+                const dashboardSkeleton = document.getElementById("dashboardSkeleton");
+                const dashboardSkeletonRow2 = document.getElementById("dashboardSkeletonRow2");
+                const dashboardContainer = document.getElementById("dashboardContainer");
+                const skeletonPieces = [dashboardButtonsSkeleton, dashboardSkeleton, dashboardSkeletonRow2];
+
+                skeletonPieces.forEach(function(piece) {
+                    piece.style.transition = '';
+                    piece.style.opacity = '1';
+                    piece.classList.remove('hidden');
+                });
+                dashboardContainer.classList.add('hidden');
+
+                fetchDashboardData(period, reportMonth)
+                    .then(function(data) {
+                        dashboardContainer.innerHTML = data.html;
+                        dashboardContainer.style.opacity = '0';
+                        dashboardContainer.classList.remove('hidden');
+                        lastDashboardData = data;
+                        initAdminDashboardCharts(data);
+                        updateReportButton(data, period);
+
+                        skeletonPieces.forEach(function(piece) {
+                            piece.style.transition = 'opacity 0.25s ease-out';
+                            piece.style.opacity = '0';
+                        });
+
+                        setTimeout(function() {
+                            skeletonPieces.forEach(function(piece) {
+                                piece.classList.add('hidden');
+                            });
+
+                            dashboardContainer.style.transition = 'opacity 0.25s ease-in';
+                            requestAnimationFrame(function() {
+                                dashboardContainer.style.opacity = '1';
+                            });
+                        }, 250);
+                    })
+                    .catch(function(error) {
+                        console.error("Failed to load dashboard data:", error);
+                        skeletonPieces.forEach(piece => piece.classList.add('hidden'));
+                        dashboardContainer.classList.remove('hidden');
+                        dashboardContainer.style.opacity = '1';
+                        const message = document.createElement('p');
+                        message.setAttribute('role', 'alert');
+                        message.textContent = 'Unable to load the dashboard. Please try again.';
+                        const retry = document.createElement('button');
+                        retry.type = 'button';
+                        retry.className = 'mt-4 px-4 py-2 rounded-full bg-blue-600 text-white';
+                        retry.textContent = 'Try again';
+                        retry.addEventListener('click', () => fetchDashboard(period, reportMonth));
+                        dashboardContainer.replaceChildren(message, retry);
+                    });
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                initReportModal();
+                fetchDashboard("{{ period }}");
+
+                document.addEventListener("click", function(e) {
+                    const reportBtn = e.target.closest("#generateReportBtn");
+                    if (!reportBtn || reportBtn.disabled) return;
+
+                    generateDashboardReport(reportBtn);
+                });
+
+                document.addEventListener("click", function(e) {
+                    const btn = e.target.closest(".period-filter-btn");
+                    if (!btn) return;
+
+                    fetchDashboard(btn.dataset.period);
+                });
+            });
+
+            // Theme-aware chart colors. The PDF report charts (reportMode) always stay light.
+            function chartPalette(reportMode) {
+                const dark = !reportMode && document.documentElement.classList.contains('dark');
+                return dark ? {
+                    text: '#bfcacd',
+                    muted: '#9faeb3',
+                    grid: '#3c4a4e',
+                    surface: '#263033'
+                } : {
+                    text: '#666666',
+                    muted: '#6b7280',
+                    grid: '#f3f4f6',
+                    surface: '#ffffff'
+                };
+            }
+
+            // Re-draw the dashboard charts when the user switches theme
+            let lastDashboardData = null;
+            document.addEventListener('themechange', function() {
+                if (lastDashboardData) initAdminDashboardCharts(lastDashboardData);
+            });
+
+            function initAdminDashboardCharts(data, opts) {
+                const pal = chartPalette(!!(opts && opts.report));
+                // reportMode = para sa PDF: sa hidden canvases lang, hindi ginagalaw ang dashboard
+                const reportMode = !!(opts && opts.report);
+                const dom = function(id) {
+                    return reportMode ? document.createElement('div') : document.getElementById(id);
+                };
+                const canvasOf = function(id) {
+                    return document.getElementById(reportMode ? 'report_' + id : id);
+                };
+                let charts;
+                if (reportMode) {
+                    charts = {};
+                } else {
+                    Object.values(dashboardCharts).forEach(function(chart) {
+                        chart.destroy();
+                    });
+                    dashboardCharts = {};
+                    charts = dashboardCharts;
+                }
+
+                const statusTotal = data.status_data.reduce((sum, count) => sum + count, 0);
+                dom('statusChartWrap').dataset.empty = String(statusTotal === 0);
+                charts.status = new Chart(canvasOf('statusChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.status_labels,
+                        datasets: [{
+                            data: data.status_data,
+                            backgroundColor: ['#f59e0b', '#0f4c81', '#10b981', '#64748b'],
+                            cutout: '65%',
+                            borderColor: pal.surface,
+                            borderWidth: 1,
+                            hoverOffset: 4,
+                        }]
+                    },
+                    options: {
+                        cutout: '65%',
+                        layout: {
+                            padding: 5
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const total = ctx.dataset.data.reduce((sum, count) => sum + count, 0);
+                                        const pct = total ? ((ctx.raw / total) * 100).toFixed(1) : '0.0';
+                                        return `${ctx.label}: ${ctx.raw} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                if (!reportMode) {
+                    document.querySelector('[data-status-count="total"]').textContent = statusTotal;
+                    ['pending', 'in_progress', 'resolved', 'closed'].forEach(function(code, index) {
+                        const count = data.status_data[index];
+                        const pct = statusTotal ? ((count / statusTotal) * 100).toFixed(1) : '0.0';
+                        document.querySelector(`[data-status-count="${code}"]`).textContent = count;
+                        document.querySelector(`[data-status-pct="${code}"]`).textContent = `${pct}%`;
+                    });
+                }
+
+                const categoryLabels = data.categories;
+                const categoryCounts = data.categories_counts;
+
+                const categoryColors = [
+                    '#3b82f6', // Blue
+                    '#8b5cf6', // Violet
+                    '#14b8a6', // Teal
+                    '#f59e0b', // Amber
+                    '#f43f5e', // Rose
+                    '#64748b', // Slate
+                    '#06b6d4' // Cyan
+                ];
+
+                const categoryTotal = categoryCounts.reduce(
+                    (sum, count) => sum + count,
+                    0
+                );
+
+                //For the center count and show gray ring kapag no reports.
+                dom('categoriesTotal').textContent =
+                    categoryCounts.filter(count => count > 0).length;
+                dom('categoriesChartWrap').dataset.empty = String(categoryTotal === 0);
+
+                charts.categories = new Chart(
+                    canvasOf('categoriesChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: categoryLabels,
+                            datasets: [{
+                                data: categoryCounts,
+                                backgroundColor: categoryColors,
+                                borderColor: pal.surface,
+                                borderWidth: 1,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            cutout: '65%',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: 5
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            const percentage = categoryTotal ?
+                                                ((ctx.raw / categoryTotal) * 100).toFixed(1) : '0.0';
+
+                                            return `${ctx.label}: ${ctx.raw} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                );
+
+                //Side legend/labels
+                const categoryLegend = dom('categoriesLegend');
+                categoryLegend.replaceChildren();
+
+                categoryLabels.forEach(function(label, index) {
+                    const count = categoryCounts[index];
+                    const percentage = categoryTotal ?
+                        ((count / categoryTotal) * 100).toFixed(1) :
+                        '0.0';
+
+                    const row = document.createElement('div');
+                    row.className = 'status-legend-row';
+                    row.innerHTML = `
+                    <dt>
+                        <span class="status-legend-dot" aria-hidden="true"></span>
+                        <span class="category-name"></span>
+                    </dt>
+                    <dd>
+                        <strong></strong>
+                        <span>${percentage}%</span>
+                    </dd>
+                `;
+
+                    row.querySelector('.status-legend-dot').style.backgroundColor =
+                        categoryColors[index];
+                    row.querySelector('.category-name').textContent = label;
+                    row.querySelector('strong').textContent = count;
+
+                    categoryLegend.append(row);
+                });
+
+
+                {% comment %} dashboardCharts.categories = new Chart(document.getElementById('categoriesChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.categories,
+                        datasets: [{
+                            data: data.categories_counts,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f3f4f6'
+                                },
+                                ticks: {
+                                    color: '#9ca3af'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#9ca3af',
+                                    font: {
+                                        size: 9
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                {% endcomment %}
+                charts.buildings = new Chart(canvasOf('buildingChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.building_labels,
+                        datasets: [{
+                            label: 'Pending',
+                            data: data.building_status_data.pending,
+                            backgroundColor: '#f59e0b'
+                        }, {
+                            label: 'In Progress',
+                            data: data.building_status_data.in_progress,
+                            backgroundColor: '#0f4c81'
+                        }, {
+                            label: 'Resolved',
+                            data: data.building_status_data.resolved,
+                            backgroundColor: '#10b981'
+                        }, {
+                            label: 'Closed',
+                            data: data.building_status_data.closed,
+                            backgroundColor: '#64748b'
+                        }, ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        datasets: {
+                            bar: {
+                                grouped: true,
+                                borderRadius: 3,
+                                maxBarThickness: 22,
+                                categoryPercentage: 0.6,
+                                barPercentage: 0.9
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: pal.text,
+                                    boxWidth: 12,
+                                    boxHeight: 12,
+                                    padding: 16,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: false,
+                                grid: {
+                                    display: true,
+                                    color: pal.grid,
+                                    drawTicks: false
+                                },
+                                ticks: {
+                                    minRotation: 45,
+                                    maxRotation: 45,
+                                    autoSkip: false,
+                                    color: pal.muted,
+                                    font: {
+                                        size: 9
+                                    }
+                                }
+                            },
+                            y: {
+                                stacked: false,
+                                beginAtZero: true,
+                                grid: {
+                                    color: pal.grid
+                                },
+                                ticks: {
+                                    precision: 0,
+                                    color: pal.muted
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (!reportMode) {
+                    Chart.Tooltip.positioners.onActual = function(items) {
+                        if (!items.length) return false;
+                        const pick = items.find(function(i) {
+                            return i.datasetIndex === 1;
+                        }) || items[0];
+                        return {
+                            x: pick.element.x,
+                            y: pick.element.y
+                        };
+                    };
+
+                    const priorityChartDefs = [{
+                        code: 'critical',
+                        canvasId: 'resolutionChartCritical',
+                        color: '#dc2626'
+                    }, {
+                        code: 'high',
+                        canvasId: 'resolutionChartHigh',
+                        color: '#ea580c'
+                    }, {
+                        code: 'standard',
+                        canvasId: 'resolutionChartStandard',
+                        color: '#2563eb'
+                    }, ];
+                    priorityChartDefs.forEach(function(def) {
+                        const series = (data.resolution_by_priority || {})[def.code];
+                        const canvas = document.getElementById(def.canvasId);
+                        if (!series || !canvas) return;
+
+                        charts['resolution_' + def.code] = new Chart(canvas, {
+                            type: 'line',
+                            data: {
+                                labels: data.resolution_weeks,
+                                datasets: [{
+                                    label: 'Expected Time (hours)',
+                                    data: series.expected,
+                                    borderColor: '#aaa',
+                                    backgroundColor: 'rgba(200,200,200,0.15)',
+                                    fill: true,
+                                    tension: 0,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 0,
+                                    order: 2,
+                                }, {
+                                    label: 'Actual Time (hours)',
+                                    data: series.actual,
+                                    borderColor: def.color,
+                                    backgroundColor: 'transparent',
+                                    tension: 0,
+                                    spanGaps: true,
+                                    borderWidth: 2,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    pointBackgroundColor: def.color,
+                                    pointBorderColor: '#ffffff',
+                                    pointBorderWidth: 2,
+                                    order: 1,
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                    mode: 'index',
+                                    intersect: false
+                                },
+                                plugins: {
+                                    tooltip: {
+                                        position: 'onActual',
+                                        caretPadding: 10,
+                                        callbacks: {
+                                            label: function(ctx) {
+                                                const h = ctx.parsed.y;
+                                                const name = ctx.dataset.label.replace(' Time (hours)', '');
+                                                if (h === null || h === undefined) return name + ': N/A';
+                                                const txt = h > 48 ? (h / 24).toFixed(1) + ' days' : h + ' h';
+                                                if (ctx.datasetIndex === 1) {
+                                                    const n = (series.counts || [])[ctx.dataIndex] || 0;
+                                                    return [name + ': ' + txt, 'Reports: ' + n];
+                                                }
+                                                return name + ': ' + txt;
+                                            }
+                                        }
+                                    },
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: {
+                                            font: {
+                                                size: 11
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: {
+                                            color: '#f3f4f6'
+                                        },
+                                        ticks: {
+                                            color: '#9ca3af'
+                                        }
+                                    },
+                                    x: {
+                                        grid: {
+                                            display: false
+                                        },
+                                        ticks: {
+                                            color: '#9ca3af',
+                                            font: {
+                                                size: 10
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    });
+                }
+                const resolutionCanvas = canvasOf('resolutionChart');
+                if (resolutionCanvas) {
+                charts.resolution = new Chart(resolutionCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: data.resolution_weeks,
+                        datasets: [{
+                            label: 'Expected Time (hours)',
+                            data: data.expected_hours,
+                            borderColor: '#aaa',
+                            backgroundColor: 'rgba(200,200,200,0.15)',
+                            fill: true,
+                            tension: 0.3,
+                        }, {
+                            label: 'Actual Time (hours)',
+                            data: data.actual_hours,
+                            borderColor: '#5b8dee',
+                            backgroundColor: 'transparent',
+                            tension: 0.3,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const h = ctx.parsed.y;
+                                        if (h === null || h === undefined) return ctx.dataset.label + ': N/A';
+                                        const txt = h > 48 ? (h / 24).toFixed(1) + ' days' : h + ' h';
+                                        return ctx.dataset.label.replace(' (hours)', '') + ': ' + txt;
+                                    }
+                                }
+                            },
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: pal.text,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                grid: {
+                                    color: pal.grid
+                                },
+                                ticks: {
+                                    color: pal.muted
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: pal.muted
+                                }
+                            }
+                        }
+                    }
+                });
+
+                }
+
+                if (reportMode) {
+                    // walang animation para kumpleto na ang drawing pag kinuha ang image
+                    Object.values(charts).forEach(function(chart) {
+                        chart.stop();
+                        chart.update('none');
+                    });
+                }
+                return charts;
+            }
+        </script>
+{% endblock %}

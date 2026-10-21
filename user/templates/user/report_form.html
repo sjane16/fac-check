@@ -1,0 +1,680 @@
+{% extends "user/layouts/base.html" %} {% block title %}Report Issue{% endblock %}
+{% load static %}
+{% block content %}
+    <style>
+        #report-form .cdd-btn { padding: 8px 12px; border-radius: 12px; }
+        #report-form #category-wrapper.has-recommendation .cdd-btn:disabled {
+            background: #edf4ff;
+            border-color: #9dc5ea;
+            color: #0f4c81;
+            font-weight: 600;
+            opacity: 1;
+        }
+        #report-form #category-wrapper.has-recommendation .cdd-btn:disabled .cdd-label { color: #0f4c81; }
+        #report-form #category-wrapper.has-recommendation .cdd-btn:disabled svg { display: none; }
+        html.dark #report-form #category-wrapper.has-recommendation .cdd-btn:disabled {
+            background: #193157;
+            border-color: #527b9e;
+            color: #e4e6eb;
+        }
+        html.dark #report-form #category-wrapper.has-recommendation .cdd-btn:disabled .cdd-label { color: #e4e6eb; }
+        @media (min-width: 1024px) {
+            #report-form,
+            #report-form-skeleton-grid { grid-template-columns: minmax(0, 45fr) minmax(0, 55fr); }
+        }
+    </style>
+    <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-40 lg:pb-10 w-full">
+        {% if form %}
+            <div id="report-form-content">{% include 'user/partials/_report_form_content.html' %}</div>
+        {% else %}
+            <div id="report-form-skeleton">
+                <div class="mb-6 space-y-2">
+                    <div class="skeleton h-7 w-56 rounded"></div>
+                    <div class="skeleton h-4 w-72 rounded"></div>
+                </div>
+                <div id="report-form-skeleton-grid" class="grid grid-cols-1 lg:grid-cols-2 items-start gap-0 lg:gap-6 bg-white border border-gray-100 rounded-2xl shadow-sm p-4 lg:bg-transparent lg:border-0 lg:rounded-none lg:shadow-none lg:p-0">
+                    <div class="min-w-0 border-b border-gray-100 pb-6 mb-6 lg:mb-0 lg:bg-white lg:border lg:border-gray-100 lg:rounded-2xl lg:shadow-sm lg:p-6">
+                        <div class="skeleton w-full h-80 rounded-2xl mb-6"></div>
+                        <div class="space-y-2">
+                            <div class="flex min-h-10 items-center justify-start">
+                                <div class="skeleton h-3 w-40 rounded"></div>
+                            </div>
+                            <div class="skeleton h-12 w-full rounded-xl"></div>
+                        </div>
+                    </div>
+                    <div class="min-w-0 lg:bg-white lg:border lg:border-gray-100 lg:rounded-2xl lg:shadow-sm p-0 lg:p-6">
+                        {% for n in "123" %}
+                            <div class="mb-5 space-y-2">
+                                <div class="skeleton h-3 w-32 rounded"></div>
+                                <div class="skeleton h-12 w-full rounded-xl"></div>
+                            </div>
+                        {% endfor %}
+                        <div class="mb-6 space-y-2">
+                            <div class="skeleton h-3 w-28 rounded"></div>
+                            <div class="skeleton h-40 w-full rounded-xl"></div>
+                        </div>
+                        <div class="skeleton h-14 w-full rounded-xl"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="report-form-content" class="hidden"></div>
+        {% endif %}
+    </main>
+    <div id="cnn-loading" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 backdrop-blur-sm px-5">
+        <div role="dialog" aria-modal="true" aria-labelledby="cnn-loading-title" class="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-7 text-center shadow-xl">
+            <div class="relative mx-auto mb-5 h-14 w-14">
+                <div class="absolute inset-0 rounded-full border-4 border-blue-100"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+            </div>
+            <h2 id="cnn-loading-title" class="text-base font-bold text-gray-900">Analyzing Concern</h2>
+            <p class="mt-2 text-sm leading-relaxed text-gray-500">The CNN is analyzing your uploaded photo and identifying its category.</p>
+            <p class="mt-5 text-xs font-medium text-blue-600">Please wait while your image is categorized.</p>
+        </div>
+    </div>
+    <!-- Photo preview lightbox (same style as admin) -->
+    <div id="reportPhotoModal"
+         class="hidden fixed inset-0 z-[9998] items-center justify-center bg-black/70 p-4">
+        <div class="relative max-w-[90vw] max-h-[90vh]">
+            <button type="button"
+                    aria-label="Close"
+                    class="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white text-gray-700 flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-5 h-5"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke-width="2.5"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <img id="reportPhotoModalImg"
+                 alt="Photo preview (enlarged)"
+                 class="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded-2xl shadow-2xl" />
+        </div>
+    </div>
+    <script>
+        function initReportForm() {
+            const input = document.getElementById("photo-upload");
+            const preview = document.getElementById("preview-image");
+            const uploadContent = document.getElementById("upload-content");
+            const errorMsg = document.getElementById("error-message");
+            const MAX_SIZE = 10 * 1024 * 1024;
+            let previewObjectUrl = null;
+
+            const dropzone = document.getElementById("dropzone");
+            const previewActions = document.getElementById("preview-actions");
+            const photoModal = document.getElementById("reportPhotoModal");
+            const photoModalImg = document.getElementById("reportPhotoModalImg");
+
+            function showPreview(src) {
+                preview.src = src;
+                preview.classList.remove("hidden");
+                uploadContent.classList.add("hidden");
+                previewActions.classList.remove("hidden");
+            }
+
+            function resetPreview() {
+                if (previewObjectUrl) {
+                    URL.revokeObjectURL(previewObjectUrl);
+                    previewObjectUrl = null;
+                }
+                preview.classList.add("hidden");
+                preview.removeAttribute("src");
+                uploadContent.classList.remove("hidden");
+                previewActions.classList.add("hidden");
+            }
+
+            function closePhotoModal() {
+                photoModal.classList.add("hidden");
+                photoModal.classList.remove("flex");
+                document.body.style.overflow = "";
+            }
+
+            // Click preview -> lightbox (preventDefault so the label doesn't open the file picker)
+            preview.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                photoModalImg.src = preview.src;
+                photoModal.classList.remove("hidden");
+                photoModal.classList.add("flex");
+                document.body.style.overflow = "hidden";
+            });
+
+            photoModal.addEventListener("click", function(e) {
+                if (e.target === photoModal || e.target.closest('button[aria-label="Close"]')) {
+                    closePhotoModal();
+                }
+            });
+
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape" && !photoModal.classList.contains("hidden")) {
+                    closePhotoModal();
+                }
+            });
+
+            document.getElementById("change-photo-btn").addEventListener("click", function() {
+                input.click();
+            });
+
+            document.getElementById("remove-photo-btn").addEventListener("click", function() {
+                predictionRequestId += 1;
+                hideCnnLoading();
+                input.value = "";
+                resetPreview();
+                errorMsg.classList.add("hidden");
+
+                // clear the AI result tied to the removed photo
+                unlockCategory();
+                categoryField.value = "";
+                document.getElementById("cnn-confidence").classList.add("hidden");
+                hideCnnError();
+                document.getElementById("custom-category-wrapper").classList.add("hidden");
+            });
+
+            function unlockCategory() {
+                categoryLocked = false;
+                categoryWrapper.classList.remove("has-recommendation");
+                setLocked(categoryField, false);
+                categoryField.classList.remove("bg-gray-100", "cursor-not-allowed", "pointer-events-none", "text-gray-700");
+                categoryField.removeAttribute("data-cdd-locked");
+            }
+
+            function hideCnnError() {
+                document.getElementById("cnn-error").classList.add("hidden");
+            }
+
+            // Prediction failed: let the user retry, or pick the category themselves
+            function showCnnError(message, canRetry) {
+                unlockCategory();
+                document.getElementById("cnn-confidence").classList.add("hidden");
+                document.getElementById("cnn-error-text").textContent = message;
+                document.getElementById("cnn-retry-btn").classList.toggle("hidden", !canRetry);
+                document.getElementById("cnn-error").classList.remove("hidden");
+            }
+
+            document.getElementById("cnn-retry-btn").addEventListener("click", function() {
+                if (input.files[0]) input.dispatchEvent(new Event("change"));
+            });
+
+            // ---- Drag and drop ----
+            ["dragenter", "dragover"].forEach(function(evt) {
+                dropzone.addEventListener(evt, function(e) {
+                    e.preventDefault();
+                    dropzone.classList.add("border-blue-400", "bg-blue-50");
+                });
+            });
+
+            ["dragleave", "drop"].forEach(function(evt) {
+                dropzone.addEventListener(evt, function(e) {
+                    e.preventDefault();
+                    dropzone.classList.remove("border-blue-400", "bg-blue-50");
+                });
+            });
+
+            dropzone.addEventListener("drop", function(e) {
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+
+                if (!["image/jpeg", "image/png"].includes(file.type)) {
+                    errorMsg.textContent = "Only JPG or PNG files are allowed";
+                    errorMsg.classList.remove("hidden");
+                    return;
+                }
+
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                input.dispatchEvent(new Event("change"));
+            });
+
+
+
+            input.addEventListener("change", function() {
+                const file = this.files[0];
+
+
+                errorMsg.classList.add("hidden");
+
+
+                if (!file) {
+                    predictionRequestId += 1;
+                    hideCnnLoading();
+                    resetPreview();
+                    return;
+                }
+
+
+                if (file.size > MAX_SIZE) {
+                    predictionRequestId += 1;
+                    this.value = "";
+                    errorMsg.textContent = "File too large (max 10MB)";
+                    errorMsg.classList.remove("hidden");
+                    hideCnnLoading();
+                    resetPreview();
+                    return;
+                }
+
+
+                const currentPredictionId = ++predictionRequestId;
+                unlockCategory();
+                categoryField.value = "";
+                setLocked(categoryField, true);
+                document.getElementById("cnn-confidence").classList.add("hidden");
+                document.getElementById("custom-category-wrapper").classList.add("hidden");
+                hideCnnError();
+                if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+                previewObjectUrl = URL.createObjectURL(file);
+                showPreview(previewObjectUrl);
+                cnnLoading.classList.remove("hidden");
+                cnnLoading.classList.add("flex");
+                document.body.style.overflow = "hidden";
+
+                const formData = new FormData();
+                formData.append("photo", file);
+                formData.append("csrfmiddlewaretoken", document.querySelector("[name=csrfmiddlewaretoken]").value);
+
+                fetch("{% url 'predictCategory' %}", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(res => res.json().catch(() => ({ success: false, retry: true })))
+                    .then(data => {
+                        if (currentPredictionId !== predictionRequestId) return;
+                        if (!data.success) {
+                            hideCnnLoading();
+                            if (data.retry === false) {
+                                // unreadable image: make the user pick another photo
+                                input.value = "";
+                                resetPreview();
+                                unlockCategory();
+                                errorMsg.textContent = data.error || "Please upload a valid JPG or PNG image.";
+                                errorMsg.classList.remove("hidden");
+                            } else {
+                                showCnnError(data.error || "AI categorization is unavailable right now. Try again or choose a category manually.", true);
+                            }
+                            return;
+                        }
+
+                        document.getElementById("id_category").value = data.category;
+                        categoryLocked = true;
+                        setLocked(categoryField, true);
+                        categoryWrapper.classList.add("has-recommendation");
+
+                        categoryField.classList.add(
+                            "bg-gray-100",
+                            "cursor-not-allowed",
+                            "pointer-events-none",
+                            "text-gray-700"
+                        );
+                        categoryField.setAttribute("data-cdd-locked", "");
+                        document.getElementById("cnn-confidence").classList.remove("hidden");
+                        document.getElementById("cnn-confidence").innerText = `AI confidence: ${(data.confidence * 100).toFixed(1)}%`;
+
+                        document.getElementById("custom-category-wrapper").classList.toggle("hidden", data.category !== "others");
+                        hideCnnLoading();
+                    })
+                    .catch(error => {
+                        if (currentPredictionId !== predictionRequestId) return;
+                        console.error(error);
+                        hideCnnLoading();
+                        showCnnError("Couldn't reach AI categorization. Try again or choose a category manually.", true);
+                    });
+            });
+
+
+            // ---- Cascading Building -> Floor -> Room logic ----
+            const buildingSelect = document.getElementById("id_building");
+            const floorSelect = document.getElementById("id_floor");
+            const roomSelect = document.getElementById("id_location");
+            let categoryLocked = false;
+
+            const floorWrapper = document.getElementById("floor-wrapper");
+            const roomWrapper = document.getElementById("room-wrapper");
+            const categoryField = document.getElementById("id_category");
+            const categoryWrapper = document.getElementById("category-wrapper");
+            const categoryHint = document.getElementById("category-hint");
+            const floorHint = document.getElementById("floor-hint");
+            const roomHint = document.getElementById("room-hint");
+            const floorField = document.getElementById("floor-field");
+            const roomField = document.getElementById("room-field");
+            const facilityBuildingIds = window.facilityBuildingIds || [];
+
+            setLocked(categoryField, true);
+
+            function loadRooms(floorId, onDone) {
+                roomSelect.innerHTML = '<option value = "">Select a Room</option>';
+                fetch(`/user/ajax/load-rooms/?floor=${floorId}`)
+                    .then(res => res.json())
+                    .then((rooms) => {
+                        rooms.forEach((room) => {
+                            roomSelect.add(new Option(room.name, room.id));
+                        });
+                        onDone(rooms);
+                    });
+            }
+
+            function setLocked(select, locked) {
+                select.disabled = locked;
+                select.classList.toggle("pointer-events-none", locked);
+                select.classList.toggle("bg-gray-100", locked);
+                select.classList.toggle("text-gray-400", locked);
+                select.classList.toggle("border-gray-200", locked);
+                select.classList.toggle("cursor-not-allowed", locked);
+            }
+
+
+            // Shows a temporary message under a field, then optionally hides it again.
+            // Used both for the "you tapped a locked field" flash and for
+            // genuine "no results" states (which stay visible, autoHideMs = null).
+            function showTempMessage(hintEl, message, isWarning, autoHideMs) {
+                hintEl.textContent = message;
+                hintEl.classList.remove("hidden");
+                hintEl.classList.toggle("text-red-500", isWarning);
+                hintEl.classList.toggle("text-gray-400", !isWarning);
+
+
+                clearTimeout(hintEl._timer);
+                if (autoHideMs) {
+                    hintEl._timer = setTimeout(() => {
+                        hintEl.classList.add("hidden");
+                        hintEl.textContent = "";
+                    }, autoHideMs);
+                }
+            }
+
+
+            function flashLockedWarning(select, hintEl, message) {
+                select.classList.add("border-red-500");
+                showTempMessage(hintEl, message, true, 2000);
+                clearTimeout(select._borderTimer);
+                select._borderTimer = setTimeout(() => {
+                    select.classList.remove("border-red-500");
+                }, 2000);
+            }
+
+            function flashCategoryInfo() {
+
+                categoryField.classList.add("border-blue-500");
+
+                categoryHint.innerHTML = `
+        <span class="flex items-center gap-2 text-blue-600">
+            <span class="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                i
+            </span>
+            Category is automatically assigned by the AI model.
+        </span>
+    `;
+
+                categoryHint.classList.remove("hidden");
+                clearTimeout(categoryHint._timer);
+
+                categoryHint._timer = setTimeout(() => {
+                    categoryHint.classList.add("hidden");
+                    categoryField.classList.remove("border-blue-500");
+                }, 2500);
+            }
+
+            // Initial state on page load — locked, no visible hint.
+            setLocked(floorSelect, floorSelect.options.length <= 1);
+            setLocked(roomSelect, roomSelect.options.length <= 1);
+
+
+            floorWrapper.addEventListener("click", function() {
+                if (floorSelect.disabled) {
+                    flashLockedWarning(floorSelect, floorHint, "⚠ Select a building first.");
+                }
+            });
+
+
+            roomWrapper.addEventListener("click", function() {
+                if (roomSelect.disabled) {
+                    // floorSelect.disabled tells us which step is actually blocking Room:
+                    // Floor still disabled -> Building hasn't been chosen yet.
+                    // Floor enabled (even if empty) -> Building is done, Floor is the blocker.
+                    const message = floorSelect.disabled ?
+                        "⚠ Select a building first." :
+                        "⚠ Select a floor first.";
+                    flashLockedWarning(roomSelect, roomHint, message);
+                }
+            });
+
+
+            buildingSelect.addEventListener("change", function() {
+                const buildingId = this.value;
+
+                floorSelect.innerHTML = '<option value="">Select a Floor</option>';
+                roomSelect.innerHTML = '<option value="">Select a Room</option>';
+                setLocked(roomSelect, true);
+                roomHint.classList.add("hidden");
+                roomHint.textContent = "";
+
+                floorField.classList.remove("hidden");
+                roomField.classList.remove("hidden");
+
+                if (!buildingId) {
+                    setLocked(floorSelect, true);
+                    floorHint.classList.add("hidden");
+                    floorHint.textContent = "";
+                    return;
+                }
+
+                const isFacility = facilityBuildingIds.includes(parseInt(buildingId));
+
+                fetch(`/user/ajax/load-floors/?building=${buildingId}`)
+                    .then((response) => response.json())
+                    .then((floors) => {
+                        floors.forEach((floor) => {
+                            floorSelect.add(new Option(floor.label, floor.id));
+                        });
+                        setLocked(floorSelect, floors.length === 0);
+
+                        if (floors.length === 0) {
+                            showTempMessage(floorHint, "No floors available.", false, null);
+                            return;
+                        }
+                        floorHint.classList.add("hidden");
+                        floorHint.textContent = "";
+
+                        // if facility has 1 floor, skip asking the user to pick it
+                        if (isFacility && floors.length === 1) {
+                            floorSelect.value = floors[0].id;
+                            floorField.classList.add("hidden");
+
+                            loadRooms(floors[0].id, (rooms) => {
+                                setLocked(roomSelect, rooms.length === 0);
+                                if (rooms.length === 0) {
+                                    showTempMessage(roomHint, "No rooms available.", false, null);
+                                    return;
+                                }
+                                // if facility has 1 room, skip asking the user to pick it
+                                if (rooms.length === 1) {
+                                    roomSelect.value = rooms[0].id;
+                                    roomField.classList.add("hidden");
+                                }
+                            });
+                        }
+                    });
+            });
+
+
+            floorSelect.addEventListener("change", function() {
+                const floorId = this.value;
+
+                if (!floorId) {
+                    roomSelect.innerHTML = '<option value="">Select a Room</option>';
+                    setLocked(roomSelect, true);
+                    roomHint.classList.add("hidden");
+                    roomHint.textContent = "";
+                    return;
+                }
+
+                loadRooms(floorId, (rooms) => {
+                    setLocked(roomSelect, rooms.length === 0);
+                    if (rooms.length === 0) {
+                        showTempMessage(roomHint, "No rooms available.", false, null);
+                    } else {
+                        roomHint.classList.add("hidden");
+                        roomHint.textContent = "";
+                    }
+                });
+            });
+
+            document.getElementById("id_category").addEventListener("change", function() {
+                document.getElementById("custom-category-wrapper").classList.toggle("hidden", this.value !== "others");
+            });
+
+            const reportForm = document.getElementById("report-form");
+            const cnnLoading = document.getElementById("cnn-loading");
+            const submitButton = document.getElementById("submit-button");
+            let predictionRequestId = 0;
+
+            function hideCnnLoading() {
+                cnnLoading.classList.add("hidden");
+                cnnLoading.classList.remove("flex");
+                document.body.style.overflow = "";
+            }
+
+            function showClientToast(message, type) {
+                const colors = {
+                    success: "bg-green-50 border-green-200 text-green-700",
+                    error: "bg-red-50 border-red-200 text-red-700",
+                    warning: "bg-yellow-50 border-yellow-200 text-yellow-700",
+                    info: "bg-blue-50 border-blue-200 text-blue-700",
+                };
+
+                let container = document.getElementById("client-toast-container");
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = "client-toast-container";
+                    container.className = "fixed top-5 right-5 z-[9999] w-80 space-y-3 max-lg:left-4 max-lg:right-4 max-lg:w-auto";
+                    document.body.appendChild(container);
+                }
+
+                const toast = document.createElement("div");
+                toast.className = `toast-message flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md ${colors[type] || colors.error}`;
+                toast.innerHTML = `
+              <div class="min-w-0 flex-1 text-sm font-medium break-words">${message}</div>
+              <button type="button" onclick="this.closest('.toast-message').remove()" class="shrink-0 text-current opacity-60 hover:opacity-100">✕</button>
+          `;
+                container.appendChild(toast);
+
+                setTimeout(() => toast.remove(), 3500);
+            }
+
+            reportForm.addEventListener("submit", function(e) {
+                const missing = [];
+
+                if (!input.files.length) {
+                    missing.push("a photo");
+                }
+                if (!buildingSelect.value) {
+                    missing.push("a building/facility");
+                }
+                if (!floorField.classList.contains("hidden") && !floorSelect.disabled && !floorSelect.value) {
+                    missing.push("a floor");
+                }
+                if (!roomField.classList.contains("hidden") && !roomSelect.disabled && !roomSelect.value) {
+                    missing.push("a room/area");
+                }
+
+                const descriptionField = reportForm.querySelector('[name="description"]');
+                if (!descriptionField.value.trim()) {
+                    missing.push("a description");
+                }
+
+                if (missing.length > 0) {
+                    e.preventDefault();
+                    showClientToast(`Please provide ${missing.join(", ")} before submitting.`, "error");
+                    return;
+                }
+
+                // Disabled controls are omitted from form data; keep the AI result in the POST.
+                if (categoryLocked) {
+                    categoryField.disabled = false;
+                }
+
+                // Gibberish/keymash detection — mirrors validate_no_gibberish() server-side.
+                // Flags 5+ consecutive consonants with no vowel in between (e.g. "dlasdpasdosa").
+                const gibberishPattern = /[bcdfghjklmnpqrstvwxyz]{5,}/i;
+
+                // Foul-word detection — mirrors validate_no_profanity() server-side.
+                // Catches common Filipino/English curse words incl. basic letter
+                // substitutions (4->a, 1/!->i, 0->o) and spacing/punctuation tricks.
+                const profanityPattern = /\b(?:f+u*c+k+|p+u*t+[a@4]*n+g+[i1!]*n+[a@4]*|p+u*t+[a@4]*n+g+|t+[a@4]*n+g+[i1!]*n+[a@4]*|g+[a@4]*g+[a@4o0]*|t+[a@4]*r+[a@4]*n+t+[a@4]*d+[a@4o0]*|t+[a@4]*n+g+[a@4]*)\b/i;
+
+                function hasInvalidInput(value) {
+                    const trimmed = value.trim();
+                    const stripped = trimmed.replace(/[\s\-_.]+/g, "");
+                    return gibberishPattern.test(trimmed) ||
+                        profanityPattern.test(trimmed) ||
+                        profanityPattern.test(stripped);
+                }
+
+                const customCategoryField = document.getElementById("id_custom_category");
+
+                if (hasInvalidInput(descriptionField.value)) {
+                    e.preventDefault();
+                    showClientToast("Invalid input. Nonsense or foul words are not accepted.", "error");
+                    return;
+                }
+
+                if (customCategoryField && !customCategoryField.closest("#custom-category-wrapper").classList.contains("hidden")) {
+                    if (hasInvalidInput(customCategoryField.value)) {
+                        e.preventDefault();
+                        showClientToast("Invalid input. Nonsense or foul words are not accepted.", "error");
+                        return;
+                    }
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent = "Submitting...";
+                submitButton.style.cursor = "not-allowed";
+            });
+
+            categoryWrapper.addEventListener("click", function() {
+
+                if (categoryLocked || categoryField.disabled) {
+                    flashCategoryInfo();
+                }
+
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if form %}
+            window.facilityBuildingIds = [{{ facility_building_ids|join:"," }}];
+            initReportForm();
+            {% else %}
+            fetch("{% url 'reportFormAjax' %}")
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    window.facilityBuildingIds = data.facility_building_ids;
+
+                    var skeleton = document.getElementById('report-form-skeleton');
+                    var content = document.getElementById('report-form-content');
+
+                    content.innerHTML = data.html;
+                    content.style.opacity = '0';
+                    content.classList.remove('hidden');
+
+                    skeleton.style.transition = 'opacity 0.25s ease-out';
+                    skeleton.style.opacity = '0';
+
+                    setTimeout(function() {
+                        skeleton.classList.add('hidden');
+                        content.style.transition = 'opacity 0.25s ease-in';
+                        requestAnimationFrame(function() {
+                            content.style.opacity = '1';
+                        });
+                        initReportForm();
+                    }, 250);
+                })
+                .catch(function(error) {
+                    console.error('Failed to load report form:', error);
+                });
+            {% endif %}
+        });
+    </script>
+{% endblock %}

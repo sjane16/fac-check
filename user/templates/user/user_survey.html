@@ -1,0 +1,76 @@
+{% extends "user/layouts/base.html" %} {% block title %}Ratings{% endblock %}
+{% block content %}
+  <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-40 lg:pb-10 w-full">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 leading-tight">Ratings</h1>
+      <p class="text-sm text-gray-500 mt-0.5">View the feedback and ratings you've submitted for completed job orders.</p>
+    </div>
+    <div id="surveySkeleton" class="space-y-4">
+      {% for n in "123" %}
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+          <div class="flex items-start justify-between mb-4">
+            <div class="space-y-2">
+              <div class="skeleton h-3.5 w-32 rounded"></div>
+              <div class="skeleton h-2.5 w-20 rounded"></div>
+            </div>
+            <div class="skeleton h-6 w-24 rounded-full"></div>
+          </div>
+          <div class="skeleton h-3 w-3/4 rounded mb-3"></div>
+          <div class="skeleton h-3 w-40 rounded mb-4"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div class="skeleton h-14 rounded-xl"></div>
+            <div class="skeleton h-14 rounded-xl"></div>
+            <div class="skeleton h-14 rounded-xl"></div>
+          </div>
+          <div class="skeleton h-12 rounded-xl"></div>
+        </div>
+      {% endfor %}
+    </div>
+    <div id="surveyContainer" class="hidden"></div>
+  </main>
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          const surveySkeleton = document.getElementById("surveySkeleton");
+          const surveyContainer = document.getElementById("surveyContainer");
+
+          function fetchSurveys(page = 1) {
+              const url = new URL("{% url 'userSurveyAjax' %}", window.location.origin);
+              url.searchParams.set("page", page);
+
+              fetch(url)
+              .then(function(response) {
+                  return response.json();
+              })
+              .then(function(data) {
+                  surveyContainer.innerHTML = data.html;
+
+                  surveyContainer.style.opacity = '0';
+                  surveyContainer.classList.remove('hidden');
+
+                  surveySkeleton.style.transition = 'opacity 0.25s ease-out';
+                  surveySkeleton.style.opacity = '0';
+
+                  setTimeout(function() {
+                      surveySkeleton.classList.add('hidden');
+
+                      surveyContainer.style.transition = 'opacity 0.25s ease-in';
+                      requestAnimationFrame(function() {
+                          surveyContainer.style.opacity = '1';
+                      });
+                  }, 250);
+              })
+              .catch(function(error) {
+                  console.error("Failed to load surveys:", error);
+              });
+          }
+
+          surveyContainer.addEventListener("click", function(event) {
+              const button = event.target.closest("[data-survey-page]");
+              if (!button || button.disabled) return;
+              fetchSurveys(button.dataset.surveyPage);
+          });
+
+          fetchSurveys();
+      });
+  </script>
+{% endblock %}

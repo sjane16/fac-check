@@ -1,0 +1,53 @@
+{% comment %}
+  "Set up a passkey" prompt for the user and admin dashboards.
+  Shown only to people with no passkey yet; auto-hides after 5 seconds and
+  stays dismissed for 30 days on this browser. Starts hidden, so a
+  dismissed prompt never flashes. Needs accounts/js/passkeys.js on the page.
+{% endcomment %}
+{% if user.is_authenticated and not user.passkeys.exists %}
+  <div id="passkey-setup-prompt"
+       data-dismiss-cookie="fc_pk_prompt_{{ user.pk }}"
+       class="hidden relative bg-blue-50 border border-blue-100 rounded-2xl p-4 sm:p-5 mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+      <div class="flex items-start gap-3 flex-1 min-w-0">
+        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+          <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-bold text-gray-900">Sign in faster next time</p>
+          <p class="text-xs text-gray-600 mt-0.5">Set up a passkey to log in with your fingerprint, face or screen lock: no password or email code needed.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button type="button"
+                data-passkey-action="add"
+                data-message-id="passkey-setup-message"
+                data-options-url="{% url 'passkey_register_options' %}"
+                data-verify-url="{% url 'passkey_register_verify' %}"
+                class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition-colors">Set up passkey</button>
+      </div>
+    </div>
+    <p id="passkey-setup-message" class="hidden mt-3 rounded-xl border px-4 py-2.5 text-xs font-medium"></p>
+  </div>
+  <script>
+    (function () {
+      var box = document.getElementById('passkey-setup-prompt');
+      if (!box) return;
+      var cookie = box.dataset.dismissCookie;
+      var dismissed = document.cookie.split('; ').indexOf(cookie + '=1') !== -1;
+      if (dismissed) return;
+      box.classList.remove('hidden');
+      var timer = setTimeout(function () {
+        document.cookie = cookie + '=1; max-age=' + (30 * 24 * 60 * 60) + '; path=/; SameSite=Lax';
+        box.style.transition = 'opacity 0.5s ease-out';
+        box.style.opacity = '0';
+        setTimeout(function () { box.remove(); }, 500);
+      }, 5000);
+      box.querySelector('[data-passkey-action="add"]').addEventListener('click', function () {
+        clearTimeout(timer);
+      });
+    })();
+  </script>
+{% endif %}

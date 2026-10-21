@@ -1,0 +1,167 @@
+{% extends "layouts/base.html" %} {% block title %}Admin Profile{% endblock %}
+{% load static %}
+{% block content %}
+  {% include 'user/components/toast.html' %}
+  <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-32 lg:pb-10 w-full">
+    <h1 class="text-lg font-bold text-gray-800">Administrator Profile</h1>
+    <p class="text-sm text-gray-500 mt-1 mb-6">Manage your account information and security settings.</p>
+    {% if is_post_render %}
+      <div id="menu-content">{% include 'partials/_menu_content.html' %}</div>
+    {% else %}
+      <div id="menu-skeleton" class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <!-- LEFT Skeleton -->
+        <div class="xl:col-span-1">
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6 flex flex-col items-center text-center gap-4">
+            <div class="skeleton w-24 h-24 rounded-full"></div>
+            <div class="space-y-2 flex flex-col items-center w-full">
+              <div class="skeleton h-5 w-40 rounded mx-auto"></div>
+              <div class="skeleton h-5 w-24 rounded-full mx-auto"></div>
+            </div>
+            <hr class="w-full border-gray-100" />
+            <div class="w-full flex flex-col gap-2">
+              {% for n in "12" %}
+                <div class="skeleton h-10 w-full rounded-xl"></div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <!-- RIGHT Skeleton -->
+        <div class="xl:col-span-2 flex flex-col gap-4">
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6">
+            <div class="skeleton h-5 w-40 rounded mb-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              {% for n in "123" %}<div class="skeleton h-11 w-full rounded-xl"></div>{% endfor %}
+            </div>
+            <div class="skeleton h-11 w-full rounded-xl"></div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6">
+            <div class="skeleton h-5 w-4 rounded mb-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+              {% for n in "123" %}<div class="skeleton h-11 w-full rounded-xl"></div>{% endfor %}
+            </div>
+            <div class="skeleton h-11 w-full rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+      <div id="menu-content" class="hidden"></div>
+    {% endif %}
+    <div class="lg:hidden mt-6 pt-4 border-t border-gray-200">
+      <button type="button"
+              onclick="openLogoutModal()"
+              class="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+        </svg>
+        Log out
+      </button>
+    </div>
+  </main>
+  <script src="{% static 'user/js/password_change.js' %}"></script>
+  <script src="{% static 'accounts/js/passkeys.js' %}"></script>
+  <script>
+      function setButtonLoading(btnId, spinnerId, textId, loadingText) {
+          const btn = document.getElementById(btnId);
+          if (!btn) return;
+          btn.disabled = true;
+          btn.classList.add("opacity-70", "cursor-not-allowed");
+          const spinner = spinnerId ? document.getElementById(spinnerId) : null;
+          if (spinner) spinner.classList.remove("hidden");
+          const text = textId ? document.getElementById(textId) : null;
+          if (text && loadingText) text.textContent = loadingText;
+      }
+
+      function initMenuPage() {
+          const photoInput = document.getElementById("admin_profile_photo");
+          const preview = document.getElementById("admin_photo_preview");
+          const avatar = document.getElementById("admin_default_avatar");
+          const savePhoto = document.getElementById("admin_save_photo");
+          const photoError = document.getElementById("admin_photo_error");
+          if (photoInput && preview && savePhoto && photoError) {
+              const savedSource = preview.getAttribute("src");
+              photoInput.addEventListener("change", function() {
+                  savePhoto.disabled = true;
+                  savePhoto.classList.add("hidden");
+                  photoError.classList.add("hidden");
+                  if (savedSource) preview.src = savedSource;
+                  else preview.removeAttribute("src");
+                  preview.classList.toggle("hidden", !savedSource);
+                  if (avatar) avatar.classList.remove("hidden");
+                  const file = photoInput.files[0];
+                  if (!file) return;
+                  if (!/\.(jpe?g|png)$/i.test(file.name) || file.size > 5 * 1024 * 1024) {
+                      photoError.textContent = "Choose a JPG or PNG image up to 5 MB.";
+                      photoError.classList.remove("hidden");
+                      photoInput.value = "";
+                      return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = function() {
+                      if (photoInput.files[0] !== file) return;
+                      preview.src = reader.result;
+                      preview.classList.remove("hidden");
+                      if (avatar) avatar.classList.add("hidden");
+                      savePhoto.disabled = false;
+                      savePhoto.classList.remove("hidden");
+                  };
+                  reader.readAsDataURL(file);
+              });
+          }
+          initPasswordChangeButton();
+          initPasswordChecklistToggle();
+          initPasswordModalOverlay();
+
+          const editForm = document.getElementById("edit_info_form");
+          const saveBtn = document.getElementById("save_info_btn");
+          if (editForm && saveBtn) {
+              function enableSaveBtn() {
+                  saveBtn.disabled = false;
+                  saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
+              }
+              editForm.querySelectorAll("input").forEach((field) => {
+                  field.addEventListener("input", enableSaveBtn);
+              });
+
+              editForm.addEventListener("submit", function() {
+                  setButtonLoading("save_info_btn", "save_info_spinner", "save_info_text", "Saving...");
+              });
+          }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          {% if is_post_render %}
+          initMenuPage();
+          {% else %}
+          fetch("{% url 'adm_menu_ajax' %}")
+              .then(function(res) {
+                  return res.json();
+              })
+              .then(function(data) {
+                  var skeleton = document.getElementById('menu-skeleton');
+                  var content = document.getElementById('menu-content');
+
+                  content.innerHTML = data.html;
+                  content.style.opacity = '0';
+                  content.classList.remove('hidden');
+
+                  skeleton.style.transition = 'opacity 0.25s ease-out';
+                  skeleton.style.opacity = '0';
+
+                  setTimeout(function() {
+                      skeleton.classList.add('hidden');
+                      content.style.transition = 'opacity 0.25s ease-in';
+                      requestAnimationFrame(function() {
+                          content.style.opacity = '1';
+                      });
+                      initMenuPage();
+                  }, 250);
+              })
+              .catch(function(error) {
+                  console.error('Failed to load admin menu:', error);
+              });
+          {% endif %}
+      });
+  </script>
+{% endblock %}

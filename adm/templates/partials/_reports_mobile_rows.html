@@ -1,0 +1,67 @@
+{% for report in reports %}
+    <a href="{% url 'adm_report_detail' report.id %}"
+       class="mobile-report-row bg-white border border-gray-100 rounded-2xl px-3 py-3 shadow-sm flex items-center gap-3"
+       data-status="{{ report.status }}">
+        <!-- REPORT IMAGE -->
+        <div class="w-10 h-10 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden">
+            {% if report.photo %}
+                <img src="{{ report.photo.url }}"
+                     alt="{{ report.get_category_display }}"
+                     class="w-full h-full object-cover" />
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-5 h-5"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="1.5"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 18h16.5M3 9.75h18" />
+                    </svg>
+                </div>
+            {% endif %}
+        </div>
+        <!-- REPORT INFO -->
+        <div class="flex-1 min-w-0">
+            <!-- CATEGORY -->
+            <p class="text-sm font-semibold text-gray-900 leading-snug break-words">{{ report.get_category_display }}</p>
+            <!-- LOCATION + DATE -->
+            <p class="text-[11px] text-gray-400 mt-0.5 leading-relaxed whitespace-normal break-words">
+                {{ report.room_location }} | {{ report.submitted_at|date:"M d, Y" }}
+            </p>
+        </div>
+        <!-- STATUS -->
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+            {% if report.status == 'pending' %}
+                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-orange-50 text-orange-500 border border-orange-200 whitespace-nowrap">
+                    Pending
+                </span>
+            {% elif report.status == 'in_progress' %}
+                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-500 border border-blue-200 whitespace-nowrap">
+                    In Progress
+                </span>
+            {% elif report.status == 'resolved' %}
+                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-green-50 text-green-600 border border-green-300 whitespace-nowrap">
+                    Resolved
+                </span>
+            {% elif report.status == 'closed' %}
+                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-500 border border-gray-300 whitespace-nowrap">
+                    Closed
+                </span>
+            {% endif %}
+            <!-- ARROW -->
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-4 h-4 text-gray-400 flex-shrink-0"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke-width="2.5"
+                 stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+        </div>
+    </a>
+{% empty %}
+    <div class="text-center py-16 text-gray-400">
+        <p class="text-sm font-medium">No reports found.</p>
+    </div>
+{% endfor %}

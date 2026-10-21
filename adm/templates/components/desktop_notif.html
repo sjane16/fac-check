@@ -1,0 +1,419 @@
+{% load static %}
+<!-- ============================= -->
+<!-- DESKTOP NOTIFICATION (static, aligns with first row of page content) -->
+<!-- ============================= -->
+<div class="hidden lg:block absolute top-6 right-0 lg:right-2 xl:right-4 z-30">
+    {% if active_page == 'adminNotifications' %}
+        <span class="relative inline-block cursor-default">
+            <svg class="w-7 h-7 text-blue-600"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+            </svg>
+        </span>
+    {% else %}
+        <button type="button" onclick="toggleNotifDropdown()" class="relative">
+            <svg id="notif_bell_icon"
+                 class="w-7 h-7 text-gray-500 transition-colors"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+            </svg>
+                <span id="desktop_notif_badge"
+                      class="{% if not unread_notifications_count %}hidden {% endif %}absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {{ unread_notifications_count }}
+                </span>
+        </button>
+    {% endif %}
+    <!-- Dropdown -->
+    <div id="notif_dropdown"
+         class="hidden absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-40">
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-base font-bold text-gray-900">Notifications</h3>
+            <div class="relative">
+                <button type="button"
+                        id="notif_menu_btn"
+                        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <circle cx="4" cy="10" r="1.6" />
+                        <circle cx="10" cy="10" r="1.6" />
+                        <circle cx="16" cy="10" r="1.6" />
+                    </svg>
+                </button>
+                <div id="notif_menu"
+                     class="hidden absolute right-0 top-9 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-10">
+                    <button type="button"
+                            id="notif_mark_all_read_btn"
+                            class="w-full flex items-center gap-2.5 pl-4 pr-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 17.5H5.5a3 3 0 0 1-3-3v-7a3 3 0 0 1 3-3H17a3 3 0 0 1 3 3v4.3" />
+                            <path d="M3.2 7.2l7.2 4.5a1.6 1.6 0 0 0 1.7 0l7.2-4.5" />
+                            <circle cx="18" cy="17.5" r="4.25" />
+                            <path d="M15.9 17.6l1.5 1.5 2.8-3.2" />
+                        </svg>
+                        Mark all as read
+                    </button>
+                    <a href="{% url 'adminNotifications' %}"
+                       class="w-full flex items-center gap-2.5 pl-4 pr-3.5 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 text-gray-500 "
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75H6.912a2.25 2.25 0 0 0-2.25 2.25v13.5a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25V16.5m-8.25-4.5 8.25-8.25M19.5 3v6h-6" />
+                        </svg>
+                        Open Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div id="notif_tabs_skeleton" class="px-4 pt-3 flex items-center gap-2">
+            <div class="skeleton h-6 w-12 rounded-full"></div>
+            <div class="skeleton h-6 w-16 rounded-full"></div>
+        </div>
+        <div id="notif_tabs_real" class="hidden px-4 pt-3 flex items-center gap-2">
+            <button type="button"
+                    id="notif_tab_all"
+                    data-filter="all"
+                    class="notif-dropdown-tab px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-blue-100 text-blue-600">
+                All
+            </button>
+            <button type="button"
+                    id="notif_tab_unread"
+                    data-filter="unread"
+                    class="notif-dropdown-tab px-3 py-1 rounded-full text-xs font-semibold transition-colors text-gray-500 hover:bg-gray-100">
+                Unread
+            </button>
+        </div>
+        <div id="notif_list_skeleton"
+             class="max-h-96 overflow-y-auto divide-y divide-gray-100 mt-2">
+            {% for n in "1234" %}
+                <div class="flex items-start gap-3 px-4 py-3">
+                    <div class="skeleton w-11 h-11 rounded-full shrink-0"></div>
+                    <div class="flex-1 min-w-0 space-y-2 pt-1">
+                        <div class="skeleton h-3 w-full rounded"></div>
+                        <div class="skeleton h-2.5 w-16 rounded"></div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="notif_list"
+             class="hidden max-h-96 overflow-y-auto divide-y divide-gray-100 mt-2"></div>
+    </div>
+</div>
+<script>
+    const notifDropdown = document.getElementById("notif_dropdown");
+    const notifList = document.getElementById("notif_list");
+    const notifListSkeleton = document.getElementById("notif_list_skeleton");
+    const notifTabsReal = document.getElementById("notif_tabs_real");
+    const notifTabsSkeleton = document.getElementById("notif_tabs_skeleton");
+    const notifTabAll = document.getElementById("notif_tab_all");
+    const notifTabUnread = document.getElementById("notif_tab_unread");
+    const notifMenuBtn = document.getElementById("notif_menu_btn");
+    const notifMenu = document.getElementById("notif_menu");
+    const notifMarkAllReadBtn = document.getElementById("notif_mark_all_read_btn");
+
+    const notifBellIcon = document.getElementById("notif_bell_icon");
+
+    const NOTIF_BOTTOM_MARGIN = 16;
+
+    function adjustNotifListHeight() {
+        const dropdownRect = notifDropdown.getBoundingClientRect();
+        const activeTabs = notifTabsReal.classList.contains("hidden") ? notifTabsSkeleton : notifTabsReal;
+        const headerEl = notifDropdown.querySelector(".border-b");
+        const headerHeight = headerEl ? headerEl.offsetHeight : 0;
+        const tabsHeight = activeTabs ? activeTabs.offsetHeight : 0;
+
+        const available = window.innerHeight - dropdownRect.top - headerHeight - tabsHeight - NOTIF_BOTTOM_MARGIN;
+        const finalHeight = Math.max(160, available);
+
+        notifList.style.maxHeight = finalHeight + "px";
+        notifListSkeleton.style.maxHeight = finalHeight + "px";
+    }
+
+    function closeNotifDropdown() {
+        notifDropdown.classList.add("hidden");
+        notifMenu.classList.add("hidden");
+        notifBellIcon.classList.remove("text-blue-600");
+        notifBellIcon.classList.add("text-gray-500");
+    }
+
+    window.addEventListener("scroll", function(e) {
+        if (notifDropdown && !notifDropdown.classList.contains("hidden")) {
+            if (!notifDropdown.contains(e.target)) {
+                closeNotifDropdown();
+            }
+        }
+    }, {
+        passive: true,
+        capture: true
+    });
+
+    window.addEventListener("resize", function() {
+        if (notifDropdown && !notifDropdown.classList.contains("hidden")) {
+            adjustNotifListHeight();
+        }
+    });
+
+    function toggleNotifDropdown() {
+        notifDropdown.classList.toggle("hidden");
+        const isOpen = !notifDropdown.classList.contains("hidden");
+
+        if (isOpen) {
+            loadNotifications();
+            adjustNotifListHeight();
+            notifBellIcon.classList.remove("text-gray-500");
+            notifBellIcon.classList.add("text-blue-600");
+        } else {
+            notifMenu.classList.add("hidden");
+            notifBellIcon.classList.remove("text-blue-600");
+            notifBellIcon.classList.add("text-gray-500");
+        }
+    }
+
+    if (notifMenuBtn) {
+        notifMenuBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            notifMenu.classList.toggle("hidden");
+        });
+    }
+
+    function getNotifCsrfToken() {
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : "";
+    }
+
+    if (notifMarkAllReadBtn) {
+        notifMarkAllReadBtn.addEventListener("click", function() {
+            if (notifMarkAllReadBtn.disabled) return;
+            setSubmissionBusy(notifMarkAllReadBtn, true);
+            fetch("{% url 'mark_all_notifications_read_admin' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getNotifCsrfToken(),
+                    },
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success) {
+                        notifMenu.classList.add("hidden");
+                        loadNotifications();
+
+                        const badge = document.getElementById("desktop_notif_badge");
+                        if (badge) badge.classList.add("hidden");
+                    }
+                })
+                .catch((error) => console.error("Failed to mark all as read:", error))
+                .finally(() => setSubmissionBusy(notifMarkAllReadBtn, false));
+        });
+    }
+
+    let currentNotifFilter = "all";
+
+    const STATUS_BADGES = {
+        staff_approval: {
+            color: "bg-blue-500",
+            icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v6m-3-3h6m-8.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109" />`,
+        },
+        pending: {
+            color: "bg-orange-500",
+            icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+        },
+        in_progress: {
+            color: "bg-sky-500",
+            icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />`,
+        },
+        resolved: {
+            color: "bg-green-500",
+            icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />`,
+        },
+        closed: {
+            color: "bg-gray-500",
+            icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5h16.5M6.75 7.5V6A2.25 2.25 0 019 3.75h6A2.25 2.25 0 0117.25 6v1.5M5.25 7.5V18A2.25 2.25 0 007.5 20.25h9A2.25 2.25 0 0018.75 18V7.5" />`,
+        },
+    };
+
+    function buildNotifItem(notif) {
+        const badge = STATUS_BADGES[notif.status] || STATUS_BADGES.pending;
+
+        const item = document.createElement("a");
+        item.href = `/adm/notifications/${notif.id}/view/`;
+        item.className = `fc-notification-row flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${
+      notif.is_read ? "bg-white" : "bg-blue-50"
+    }`;
+        item.innerHTML = `
+        <div class="relative shrink-0">
+          <div class="w-11 h-11 rounded-full bg-gray-200 flex items-center justify-center">
+           <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" />
+                <circle cx="12" cy="10.5" r="1.8" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.7 16.8c.9-2 2-3 3.3-3s2.4 1 3.3 3" />
+            </svg>
+          </div>
+          <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full ${badge.color} border-[3px] border-white flex items-center justify-center">
+            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              ${badge.icon}
+            </svg>
+          </div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p data-notification-message class="text-sm text-gray-800 ${notif.is_read ? "" : "font-semibold"}"></p>
+          <p class="text-xs text-gray-400 mt-1">${notif.time_ago}</p>
+        </div>
+        ${!notif.is_read ? '<span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 mt-1.5"></span>' : ""}
+      `;
+        item.querySelector("[data-notification-message]").textContent = notif.message;
+        return item;
+    }
+
+    function buildSectionHeader(label, showSeeAll) {
+        const header = document.createElement("div");
+        header.className = "px-4 pt-3 pb-1 flex items-center justify-between";
+        header.innerHTML = `
+        <span class="text-sm font-bold text-gray-900">${label}</span>
+        ${showSeeAll ? `<a href="{% url 'adminNotifications' %}" class="text-xs font-semibold text-blue-600 hover:underline">See all</a>` : ""}
+      `;
+        return header;
+    }
+
+    // Last response per filter. Reopening the dropdown shows it right away and
+    // refreshes quietly, so the skeleton only appears on the very first load.
+    const notifCache = {};
+    let notifRequestId = 0;
+
+    function renderNotifications(data) {
+        notifList.innerHTML = "";
+
+        if (data.notifications.length === 0) {
+            notifList.innerHTML =
+                '<div class="px-4 py-6 text-center text-sm text-gray-400">No notifications yet.</div>';
+        } else {
+            const isStaff = (n) => n.status === "staff_approval";
+            const staffApprovals = data.notifications.filter((n) => isStaff(n));
+            const others = data.notifications.filter((n) => !isStaff(n));
+            const recent = others.filter((n) => n.is_recent);
+            const older = others.filter((n) => !n.is_recent);
+
+            // "See all" only on the first divider shown
+            const addSection = (label, items) => {
+                if (items.length === 0) return;
+                notifList.appendChild(buildSectionHeader(label, notifList.children.length === 0));
+                items.forEach((notif) => notifList.appendChild(buildNotifItem(notif)));
+            };
+
+            addSection("Staff", staffApprovals);
+            addSection("New", recent);
+            addSection("Yesterday", older);
+        }
+
+        notifTabsSkeleton.classList.add('hidden');
+        notifListSkeleton.classList.add('hidden');
+        notifTabsReal.classList.remove('hidden');
+        notifList.classList.remove('hidden');
+
+        adjustNotifListHeight();
+    }
+
+    function updateNotifBadge(data) {
+        const badge = document.getElementById("desktop_notif_badge");
+        if (badge) {
+            badge.textContent = data.unread_count;
+            badge.classList.toggle("hidden", data.unread_count === 0);
+        }
+    }
+
+    function loadNotifications() {
+        const filter = currentNotifFilter;
+        const requestId = ++notifRequestId;
+        const previous = notifCache[filter];
+
+        if (previous) {
+            renderNotifications(previous);
+        } else {
+            notifTabsSkeleton.classList.remove('hidden');
+            notifListSkeleton.classList.remove('hidden');
+            notifTabsReal.classList.add('hidden');
+            notifList.classList.add('hidden');
+        }
+
+        fetch(`{% url 'get_notifications_ajax_admin' %}?filter=${filter}`)
+            .then((res) => res.json())
+            .then((data) => {
+                const changed = !previous ||
+                    JSON.stringify(previous.notifications) !== JSON.stringify(data.notifications);
+                notifCache[filter] = data;
+                updateNotifBadge(data);
+                // Skip the redraw if nothing changed, or if the user already switched tab / reopened.
+                if (requestId === notifRequestId && changed) renderNotifications(data);
+            });
+    }
+
+    // Optional: warm the "All" list quietly after the page loads (desktop only), so even the
+    // first click on the bell is instant after navigating to another page. Delete this block
+    // if you don't want the extra background request.
+    function prefetchNotifications() {
+        if (notifCache.all) return;
+        fetch(`{% url 'get_notifications_ajax_admin' %}?filter=all`)
+            .then((res) => res.json())
+            .then((data) => {
+                if (!notifCache.all) notifCache.all = data;
+            })
+            .catch(() => {});
+    }
+
+    if (notifBellIcon && window.matchMedia("(min-width: 1024px)").matches) {
+        if ("requestIdleCallback" in window) {
+            requestIdleCallback(prefetchNotifications);
+        } else {
+            setTimeout(prefetchNotifications, 1500);
+        }
+    }
+
+    function setNotifTab(filterValue) {
+        currentNotifFilter = filterValue;
+
+        [notifTabAll, notifTabUnread].forEach((tab) => {
+            if (!tab) return;
+            if (tab.dataset.filter === filterValue) {
+                tab.classList.add("bg-blue-100", "text-blue-600");
+                tab.classList.remove("text-gray-500", "hover:bg-gray-100");
+            } else {
+                tab.classList.remove("bg-blue-100", "text-blue-600");
+                tab.classList.add("text-gray-500", "hover:bg-gray-100");
+            }
+        });
+
+        loadNotifications();
+    }
+
+    if (notifTabAll) {
+        notifTabAll.addEventListener("click", function() {
+            setNotifTab("all");
+        });
+    }
+
+    if (notifTabUnread) {
+        notifTabUnread.addEventListener("click", function() {
+            setNotifTab("unread");
+        });
+    }
+
+    document.addEventListener("click", function(e) {
+        if (notifMenu && !notifMenu.classList.contains("hidden") && !e.target.closest("#notif_menu") && !e.target.closest("#notif_menu_btn")) {
+            notifMenu.classList.add("hidden");
+        }
+
+        if (
+            notifDropdown &&
+            !notifDropdown.classList.contains("hidden") &&
+            !e.target.closest("#notif_dropdown") &&
+            !e.target.closest("button[onclick='toggleNotifDropdown()']")
+        ) {
+            closeNotifDropdown();
+        }
+    });
+</script>

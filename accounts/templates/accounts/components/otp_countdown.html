@@ -1,0 +1,6 @@
+{% load static %}
+<p class="text-sm text-gray-500 mb-4 text-center" data-otp-countdown="{{ otp_remaining_ms|default:0 }}">
+  Code expires in <span data-otp-time role="timer" aria-live="off" class="font-semibold tabular-nums"></span>.
+</p>
+<p data-otp-expired class="text-sm text-red-600 mb-4 text-center" role="status" hidden></p>
+<script src="{% static 'accounts/js/otp_countdown.js' %}" defer></script>

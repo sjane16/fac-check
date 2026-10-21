@@ -1,0 +1,21 @@
+{% if can_edit_personnel and has_personnel %}
+  <button type="button" data-open-personnel aria-label="Edit MED personnel assignment" title="Edit personnel"
+          class="absolute top-2 right-2 p-2 rounded-lg text-blue-600 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-500 disabled:opacity-40 disabled:cursor-not-allowed">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 0 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487Zm0 0L19.5 7.125" /></svg>
+  </button>
+{% endif %}
+<div class="{% if can_edit_personnel and has_personnel %}pr-10{% endif %}" data-selected-personnel>
+  {% if has_personnel %}
+    <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+      {% for group in selected_personnel_groups %}{% for personnel in group.personnel %}<li>{{ personnel.name }}</li>{% endfor %}{% endfor %}
+      {% for personnel in other_personnel %}<li>{{ personnel.name }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  {% if not has_personnel %}
+    {% if can_edit_personnel %}
+      <button type="button" data-open-personnel class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">+ Add Personnel</button>
+    {% else %}
+      <p class="text-sm text-gray-400">No personnel assigned.</p>
+    {% endif %}
+  {% endif %}
+</div>

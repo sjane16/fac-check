@@ -1,0 +1,14 @@
+<div class="{% if embedded %}bg-white p-10{% else %}bg-white border border-gray-100 rounded-2xl shadow-sm p-10{% endif %} flex flex-col items-center justify-center text-center">
+    <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-gray-400"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="m9 14 2 2 4-4" />
+        </svg>
+    </div>
+    <p class="text-sm font-semibold text-gray-700">{{ title }}</p>
+    <p class="text-xs text-gray-400 mt-1">{{ subtitle }}</p>
+</div>

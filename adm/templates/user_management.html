@@ -1,0 +1,839 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+  <main class="flex-1 min-w-0 w-full bg-gray-50">
+    <div class="min-w-0 w-full px-4 lg:px-10 xl:px-16 pt-5 lg:pt-6 pb-28 lg:pb-10">
+
+      <!-- Header -->
+      <div class="mb-5 lg:mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 leading-tight">User Management</h1>
+          <p class="text-xs lg:text-sm text-gray-500 mt-0.5">Manage user accounts and grant admin access to staff.</p>
+        </div>
+        <button type="button" id="openImport"
+                class="inline-flex w-full lg:w-auto items-center justify-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl shadow-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+          Import users
+        </button>
+      </div>
+
+      <!-- Stat cards (click to filter the list) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
+        <button type="button" data-stat-filter="pending"
+                class="min-w-0 flex flex-col justify-start text-left rounded-2xl border border-gray-200 bg-white p-1 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500">
+          <div class="flex min-h-12 items-center gap-2 rounded-xl px-3 py-3 text-xs font-semibold sm:text-sm bg-orange-50 text-orange-700">
+            <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>Pending Approval</span>
+          </div>
+          <div class="px-3 pb-3 pt-4 sm:px-4 sm:pb-4">
+            <p class="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl tabular-nums" data-stat="pending">{{ stats.pending }}</p>
+            <p class="mt-3 text-left text-xs text-gray-500">Staff waiting for review</p>
+          </div>
+        </button>
+        <button type="button" data-stat-filter="active"
+                class="min-w-0 flex flex-col justify-start text-left rounded-2xl border border-gray-200 bg-white p-1 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500">
+          <div class="flex min-h-12 items-center gap-2 rounded-xl px-3 py-3 text-xs font-semibold sm:text-sm bg-green-50 text-green-700">
+            <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            <span>Active Users</span>
+          </div>
+          <div class="px-3 pb-3 pt-4 sm:px-4 sm:pb-4">
+            <p class="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl tabular-nums" data-stat="active">{{ stats.active }}</p>
+            <p class="mt-3 text-left text-xs text-gray-500">Can log in and report</p>
+          </div>
+        </button>
+        <button type="button" data-stat-filter="unverified"
+                class="min-w-0 flex flex-col justify-start text-left rounded-2xl border border-gray-200 bg-white p-1 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500">
+          <div class="flex min-h-12 items-center gap-2 rounded-xl px-3 py-3 text-xs font-semibold sm:text-sm bg-sky-50 text-sky-700">
+            <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+            <span>Unverified</span>
+          </div>
+          <div class="px-3 pb-3 pt-4 sm:px-4 sm:pb-4">
+            <p class="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl tabular-nums" data-stat="unverified">{{ stats.unverified }}</p>
+            <p class="mt-3 text-left text-xs text-gray-500">Never finished the email code</p>
+          </div>
+        </button>
+        <button type="button" data-stat-filter="deactivated"
+                class="min-w-0 flex flex-col justify-start text-left rounded-2xl border border-gray-200 bg-white p-1 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500">
+          <div class="flex min-h-12 items-center gap-2 rounded-xl px-3 py-3 text-xs font-semibold sm:text-sm bg-gray-100 text-gray-700">
+            <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+            <span>Deactivated</span>
+          </div>
+          <div class="px-3 pb-3 pt-4 sm:px-4 sm:pb-4">
+            <p class="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl tabular-nums" data-stat="deactivated">{{ stats.deactivated }}</p>
+            <p class="mt-3 text-left text-xs text-gray-500">Access turned off</p>
+          </div>
+        </button>
+      </div>
+
+      <!-- Staff waiting for approval -->
+      <div id="pendingCard" class="w-full max-w-full min-w-0 bg-white border border-gray-200 rounded-3xl shadow overflow-hidden mb-6">
+        <div id="pendingList">
+          {% include 'partials/_users_pending.html' %}
+        </div>
+      </div>
+
+      <!-- All users -->
+      <div class="w-full max-w-full min-w-0 bg-white border border-gray-200 rounded-3xl shadow overflow-visible">
+        <div id="managementControls" data-mobile-search-open="false" class="flex flex-wrap items-center justify-between gap-3 px-4 lg:px-6 pt-5 pb-4">
+          <div id="managementHeadingRow" class="flex items-center gap-3 w-full lg:w-auto">
+            <div>
+              <h2 id="managementListTitle" class="text-lg font-bold text-gray-900">All Users</h2>
+              <p id="userCount" data-um-switch-panel class="text-xs text-gray-400"><span class="skeleton inline-block h-3 w-24 rounded align-middle"></span></p>
+              <p id="personnelCount" data-um-switch-panel hidden class="text-xs text-gray-400" aria-live="polite"></p>
+            </div>
+            <button id="managementListSwitch" type="button" aria-label="Switch to All Personnels" aria-pressed="false" title="Switch to All Personnels"
+                    class="rounded-xl border border-gray-200 p-2 text-blue-600 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-500">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3v15m0-15L4 7m4-4 4 4m4 14V6m0 15-4-4m4 4 4-4" /></svg>
+            </button>
+            <button id="managementMobileSearchButton" type="button" aria-label="Search users" aria-controls="managementMobileSearchField" aria-expanded="false"
+                    class="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 shadow-sm lg:hidden">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+            </button>
+          </div>
+          <div id="managementMobileSearchField" data-um-switch-panel hidden class="flex w-full items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm lg:hidden">
+            <svg class="w-4 h-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+            <input id="managementMobileSearchInput" type="text" enterkeyhint="search" maxlength="100" autocomplete="off" data-lpignore="true" data-1p-ignore
+                   placeholder="Search name or email" aria-label="Search users" class="min-w-0 flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none">
+            <button id="managementMobileSearchClose" type="button" aria-label="Close search" class="shrink-0 rounded-lg p-1 text-gray-400 hover:text-gray-600">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div id="userFilters" data-um-switch-panel class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <div class="hidden lg:flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2 bg-white shadow-sm w-full lg:w-64">
+              <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+              <!-- type="search" + autocomplete off: stops browsers filling the admin's saved email here -->
+              <input id="userSearch" type="search" name="um-user-search" autocomplete="off" data-lpignore="true" data-1p-ignore
+                     maxlength="100" placeholder="Search name or email"
+                     class="text-sm text-gray-600 bg-transparent focus:outline-none w-full placeholder-gray-300" />
+            </div>
+            <div class="min-w-0 flex-1 lg:flex-none lg:w-36">
+              <select id="roleFilter" data-cdd data-cdd-plain-empty aria-label="Filter by role"
+                      class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-600 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <option value="">All roles</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="min-w-0 flex-1 lg:flex-none lg:w-40">
+              <select id="statusFilter" data-cdd data-cdd-plain-empty aria-label="Filter by status"
+                      class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-600 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100">
+                <option value="">All statuses</option>
+                <option value="active">Active</option>
+                <option value="unverified">Unverified</option>
+                <option value="deactivated">Deactivated</option>
+              </select>
+            </div>
+          </div>
+          <div id="personnelFilters" data-um-switch-panel hidden class="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:items-center lg:w-auto">
+            <input id="personnelSearch" type="search" maxlength="100" autocomplete="off" placeholder="Search personnel name" aria-label="Search personnel name"
+                   class="hidden lg:block min-w-0 lg:flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100">
+            <div class="min-w-0 lg:w-64">
+              <select id="personnelCategoryFilter" data-cdd data-cdd-plain-empty aria-label="Filter personnel by category" class="max-w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                <option value="">All categories</option>
+                {% for value, label in med_personnel_categories %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              </select>
+            </div>
+            <button type="button" id="openAddPersonnel" class="w-full lg:w-auto rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Personnel</button>
+          </div>
+        </div>
+
+        <div id="userList" data-um-switch-panel>
+        <!-- Desktop table -->
+        <div class="hidden lg:block w-full max-w-full overflow-x-auto">
+          <table class="w-full min-w-[760px] text-sm">
+            <thead>
+              <tr class="border-y border-gray-100">
+                <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-4">User</th>
+                <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-4">Role</th>
+                <th class="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-4">Department</th>
+                <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-4">Status</th>
+                <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-4">Joined</th>
+                <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-4">Action</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody" class="divide-y divide-gray-50">
+              {% for n in "12345" %}
+                <tr>
+                  <td class="px-3 py-4"><div class="flex items-center gap-3"><div class="skeleton w-10 h-10 rounded-full"></div><div class="space-y-2"><div class="skeleton h-3 w-32 rounded"></div><div class="skeleton h-2.5 w-40 rounded"></div></div></div></td>
+                  <td class="px-3 py-4"><div class="skeleton h-3 w-16 rounded"></div></td>
+                  <td class="px-3 py-4"><div class="skeleton h-3 w-12 rounded"></div></td>
+                  <td class="px-3 py-4"><div class="skeleton h-6 w-20 rounded-full mx-auto"></div></td>
+                  <td class="px-3 py-4"><div class="skeleton h-3 w-20 rounded mx-auto"></div></td>
+                  <td class="px-3 py-4"><div class="skeleton h-7 w-24 rounded-lg mx-auto"></div></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile cards -->
+        <div id="usersMobile" class="lg:hidden flex flex-col gap-2.5 px-3 pb-3">
+          {% for n in "1234" %}
+            <div class="bg-white border border-gray-100 rounded-2xl px-3 py-3 flex items-center gap-3 shadow-sm">
+              <div class="skeleton w-10 h-10 rounded-full flex-shrink-0"></div>
+              <div class="flex-1 space-y-2"><div class="skeleton h-3 w-2/3 rounded"></div><div class="skeleton h-2.5 w-1/2 rounded"></div></div>
+              <div class="skeleton h-6 w-16 rounded-full flex-shrink-0"></div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+          <button id="prevBtn" type="button" disabled
+                  class="text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+          <span id="pageInfo" class="text-xs text-gray-400"></span>
+          <button id="nextBtn" type="button" disabled
+                  class="text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+        </div>
+        </div>
+        <div id="personnelPanel" data-um-switch-panel hidden
+             data-list-url="{% url 'personnel_management_ajax' %}" data-add-url="{% url 'personnel_add' %}"
+             data-edit-url="{% url 'personnel_edit' 0 %}" data-delete-url="{% url 'personnel_delete' 0 %}">
+          <div id="personnelManagementRows" class="px-4 lg:px-6 pb-4" aria-live="polite"></div>
+          <div class="flex items-center justify-between gap-3 border-t border-gray-100 px-4 py-3">
+            <button id="personnelPrev" type="button" disabled class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-500 disabled:opacity-40">Previous</button>
+            <span id="personnelPageInfo" class="text-xs text-gray-400"></span>
+            <button id="personnelNext" type="button" disabled class="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-500 disabled:opacity-40">Next</button>
+          </div>
+        </div>
+      </div>
+      <template id="personnelLoadingTemplate">
+        <div class="divide-y divide-gray-100" aria-hidden="true">
+          {% for n in "12345" %}
+            <div class="flex items-center justify-between gap-3 py-4">
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class="skeleton h-3 w-40 max-w-full rounded"></div>
+                <div class="skeleton h-2.5 w-48 max-w-full rounded"></div>
+              </div>
+              <div class="flex shrink-0 gap-2">
+                <div class="skeleton h-7 w-12 rounded-lg"></div>
+                <div class="skeleton h-7 w-14 rounded-lg"></div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </template>
+    </div>
+  </main>
+  {% include 'partials/_personnel_management_modal.html' %}
+  <style>
+    [data-um-switch-panel][hidden] { display: none !important; }
+    @media (max-width: 1023px) {
+      #managementControls[data-mobile-search-open="true"] :is(#managementHeadingRow, #userFilters, #personnelFilters) { display: none !important; }
+    }
+  </style>
+  <script src="{% static 'adm/js/personnel_management.js' %}" defer></script>
+
+  <!-- Confirm dialog -->
+  <div id="umModal" class="hidden fixed inset-0 z-[60] bg-black/40 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+      <div id="umModalIcon" class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>
+      </div>
+      <h3 id="umModalTitle" class="text-lg font-bold text-gray-900 text-center"></h3>
+      <p id="umModalText" class="text-sm text-gray-500 mt-1 text-center"></p>
+      <textarea id="umModalReason" rows="2" maxlength="500"
+                class="hidden mt-4 w-full p-3 bg-gray-50 text-gray-700 placeholder-gray-400 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Reason (optional, included in the email to the user)"></textarea>
+      <div id="umModalRoleWrap" class="hidden mt-4">
+        <label for="umModalRole" id="umModalRoleLabel" class="block text-xs font-semibold text-gray-600 mb-1.5">This account was created as an admin. What role should it have now?</label>
+        <select id="umModalRole" data-cdd aria-label="New account role"
+                class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <option value="">Choose a role</option>
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+          <option value="staff">Staff</option>
+        </select>
+      </div>
+      <div id="umModalPersonnelWrap" class="hidden mt-4">
+        <label for="umModalPersonnel" class="block text-xs font-semibold text-gray-600 mb-1.5">Roster entry</label>
+        <select id="umModalPersonnel" data-cdd aria-label="Matching MED personnel name"
+                class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <option value="">Choose a roster entry</option>
+        </select>
+      </div>
+      <div id="umModalPersonnelCategoryWrap" class="hidden mt-4">
+        <label for="umModalPersonnelCategory" class="block text-xs font-semibold text-gray-600 mb-1.5">MED section</label>
+        <select id="umModalPersonnelCategory" data-cdd aria-label="MED personnel section"
+                class="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100">
+          <option value="">Choose a category</option>
+        </select>
+      </div>
+      <!-- Its own form with its own username field, so password managers fill these two
+           and never touch the user search box (which would filter the list to the admin) -->
+      <form id="umModalPasswordWrap" class="hidden mt-4" autocomplete="on" onsubmit="return false;">
+        <input type="text" name="username" autocomplete="username" value="{{ request.user.get_username }}"
+               readonly tabindex="-1" aria-hidden="true" class="sr-only" />
+        <label for="umModalPassword" class="block text-xs font-semibold text-gray-600 mb-1.5">Enter your password to confirm</label>
+        <input id="umModalPassword" type="password" autocomplete="current-password"
+               class="w-full text-sm text-gray-700 placeholder-gray-400 border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100"
+               placeholder="Your password" />
+      </form>
+      <p id="umModalError" class="hidden mt-3 text-xs text-red-600"></p>
+      <div class="flex gap-3 mt-5">
+        <button type="button" id="umModalCancel" class="flex-1 text-sm font-semibold text-gray-600 border border-gray-200 bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50">Cancel</button>
+        <button type="button" id="umModalConfirm" class="flex-1 text-sm font-semibold text-white px-4 py-2.5 rounded-xl"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import users dialog: 1) upload  2) preview  3) result -->
+  <div id="importModal" class="hidden fixed inset-0 z-[60] bg-black/40 items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+      <div class="flex items-start justify-between gap-3 px-6 pt-5 pb-3 border-b border-gray-100">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900">Import users from Excel</h3>
+          <p class="text-xs text-gray-500 mt-0.5">Each person gets an email with a temporary password and chooses their own at first login.</p>
+        </div>
+        <button type="button" data-import-close class="text-gray-400 hover:text-gray-600 text-xl leading-none px-1" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Step 1: upload -->
+      <div id="importStep1" class="px-6 py-5 overflow-y-auto">
+        <ol class="space-y-4 text-sm text-gray-700">
+          <li class="flex gap-3">
+            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-bold flex items-center justify-center shrink-0">1</span>
+            <div>
+              <p class="font-semibold">Download the template</p>
+              <p class="text-xs text-gray-500">Columns: First Name, Last Name, Email, Role, Department, Phone. There's no password column. Up to 100 people per file.</p>
+              <a href="{% url 'user_import_template' %}" class="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                fac-check-user-import-template.xlsx
+              </a>
+            </div>
+          </li>
+          <li class="flex gap-3">
+            <span class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 text-xs font-bold flex items-center justify-center shrink-0">2</span>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold">Upload the filled-in file</p>
+              <label for="importFile" class="mt-2 flex flex-col items-center justify-center gap-1 border-2 border-dashed border-gray-200 rounded-2xl px-4 py-6 text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50/40">
+                <svg class="w-7 h-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                <span id="importFileName" class="text-sm font-medium text-gray-600">Click to choose an .xlsx file</span>
+                <span class="text-[11px] text-gray-400">Max 2 MB</span>
+              </label>
+              <input id="importFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden" />
+            </div>
+          </li>
+        </ol>
+        <p id="importError1" class="hidden mt-4 text-xs text-red-600"></p>
+        <div class="flex justify-end gap-3 mt-5">
+          <button type="button" data-import-close class="text-sm font-semibold text-gray-600 border border-gray-200 bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50">Cancel</button>
+          <button type="button" id="importCheck" class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed" disabled>Check file</button>
+        </div>
+      </div>
+
+      <!-- Step 2: preview -->
+      <div id="importStep2" class="hidden flex-1 min-h-0 flex-col">
+        <div class="px-6 pt-4 flex flex-wrap gap-2">
+          <span id="importReady" class="px-3 py-1.5 rounded-full bg-green-50 border border-green-300 text-xs font-semibold text-green-600"></span>
+          <span id="importBad" class="px-3 py-1.5 rounded-full bg-red-50 border border-red-200 text-xs font-semibold text-red-600"></span>
+        </div>
+        <p class="px-6 pt-2 text-xs text-gray-500">Rows with problems are skipped. Fix them in the file and import it again later.</p>
+        <div class="px-6 py-3 overflow-y-auto flex-1 min-h-0">
+          <table class="w-full text-xs">
+            <thead class="sticky top-0 bg-white">
+              <tr class="text-left text-gray-400 uppercase tracking-wide border-b border-gray-100">
+                <th class="py-2 pr-2">Row</th><th class="py-2 pr-2">Name</th><th class="py-2 pr-2">Email</th><th class="py-2 pr-2">Role</th><th class="py-2 pr-2">Dept</th><th class="py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody id="importRows" class="divide-y divide-gray-50"></tbody>
+          </table>
+        </div>
+        <p id="importError2" class="hidden px-6 text-xs text-red-600"></p>
+        <div class="flex justify-between gap-3 px-6 py-4 border-t border-gray-100">
+          <button type="button" id="importBack" class="text-sm font-semibold text-gray-600 border border-gray-200 bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50">Choose another file</button>
+          <button type="button" id="importConfirm" class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"></button>
+        </div>
+      </div>
+
+      <!-- Step 3: result -->
+      <div id="importStep3" class="hidden px-6 py-6 overflow-y-auto">
+        <div class="w-12 h-12 rounded-full bg-green-50 text-green-500 flex items-center justify-center mb-3">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+        </div>
+        <p id="importResultTitle" class="text-base font-bold text-gray-900"></p>
+        <p class="text-xs text-gray-500 mt-1">Each new user received an email with a temporary password.</p>
+        <div id="importFailed" class="hidden mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p class="text-xs font-semibold text-red-700 mb-1">Not created:</p>
+          <ul id="importFailedList" class="text-xs text-red-600 space-y-0.5"></ul>
+        </div>
+        <div class="flex justify-end mt-5">
+          <button type="button" data-import-close class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="umToast" class="hidden fixed top-5 right-5 z-[9999] w-80 max-lg:left-4 max-lg:right-4 max-lg:w-auto"></div>
+
+  {{ med_personnel_options|json_script:"med-personnel-options" }}
+  {{ med_personnel_categories|json_script:"med-personnel-categories" }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const AJAX_URL = "{% url 'user_management_ajax' %}";
+      const ACTION_URL = "{% url 'user_management_action' 0 %}";  // 0 is replaced with the user id
+
+      const body = document.getElementById("usersBody");
+      const mobile = document.getElementById("usersMobile");
+      const pendingList = document.getElementById("pendingList");
+      const userCount = document.getElementById("userCount");
+      const pageInfo = document.getElementById("pageInfo");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const search = document.getElementById("userSearch");
+      const roleFilter = document.getElementById("roleFilter");
+      const statusFilter = document.getElementById("statusFilter");
+      const usersList = document.getElementById("userList");
+      const desktopLoading = body.innerHTML;
+      const mobileLoading = mobile.innerHTML;
+      const countLoading = userCount.innerHTML;
+
+      let page = 1, searchTimer = null, searchText = "", loadSequence = 0, staffTargetFocused = false;
+
+      function csrf() {
+        const m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : "";
+      }
+
+      function setStats(stats) {
+        Object.keys(stats).forEach(function (key) {
+          const el = document.querySelector('[data-stat="' + key + '"]');
+          if (el) el.textContent = stats[key];
+        });
+      }
+
+      function load() {
+        const sequence = ++loadSequence;
+        body.innerHTML = desktopLoading;
+        mobile.innerHTML = mobileLoading;
+        userCount.innerHTML = countLoading;
+        usersList.setAttribute("aria-busy", "true");
+        pageInfo.textContent = "";
+        prevBtn.disabled = nextBtn.disabled = true;
+        const params = new URLSearchParams({ page: page, search: searchText, role: roleFilter.value, status: statusFilter.value });
+        fetch(AJAX_URL + "?" + params.toString())
+          .then(function (r) {
+            if (!r.ok || r.redirected) throw new Error();
+            return r.json();
+          })
+          .then(function (data) {
+            if (sequence !== loadSequence) return;
+            body.innerHTML = data.desktop_html;
+            mobile.innerHTML = data.mobile_html;
+            pendingList.innerHTML = data.pending_html;
+            if (!staffTargetFocused && window.location.hash.startsWith("#staff-")) {
+              const staffCard = document.getElementById(window.location.hash.slice(1));
+              if (staffCard) {
+                staffCard.scrollIntoView({ block: "center" });
+                staffCard.focus({ preventScroll: true });
+                staffTargetFocused = true;
+              }
+            }
+            setStats(data.stats);
+            userCount.textContent = data.total_count + " user" + (data.total_count === 1 ? "" : "s") + " found";
+            pageInfo.textContent = "Page " + data.current_page + " of " + data.total_pages;
+            prevBtn.disabled = !data.has_previous;
+            nextBtn.disabled = !data.has_next;
+            page = data.current_page;
+          })
+          .catch(function () {
+            if (sequence !== loadSequence) return;
+            body.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-sm text-gray-500">Couldn\'t load users. Please try again.</td></tr>';
+            mobile.textContent = "Couldn't load users. Please try again.";
+            userCount.textContent = "Unable to load users";
+            toast("Couldn't load users. Please refresh the page.", true);
+          })
+          .finally(function () {
+            if (sequence === loadSequence) usersList.removeAttribute("aria-busy");
+          });
+      }
+      document.addEventListener("management:refresh-users", load);
+
+      // ---------- filters ----------
+      // Only real typing/pasting/clearing counts as a search. Password managers can drop the
+      // admin's saved email into this box without any of these, and that must not filter the list.
+      let searchTouched = false;
+      ["keydown", "paste", "cut", "drop"].forEach(function (ev) {
+        search.addEventListener(ev, function () { searchTouched = true; });
+      });
+      search.addEventListener("input", function () {
+        if (!searchTouched && search.value !== "") {
+          search.value = searchText;  // undo the autofill
+          return;
+        }
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+          searchText = search.value.trim();
+          page = 1;
+          load();
+        }, 300);
+      });
+      // the little "x" in a search box clears it without a key press
+      search.addEventListener("search", function () {
+        searchText = search.value.trim();
+        page = 1;
+        load();
+      });
+      [roleFilter, statusFilter].forEach(function (el) {
+        el.addEventListener("change", function () { page = 1; load(); });
+      });
+      prevBtn.addEventListener("click", function () { if (page > 1) { page -= 1; load(); } });
+      nextBtn.addEventListener("click", function () { page += 1; load(); });
+      document.querySelectorAll("[data-stat-filter]").forEach(function (card) {
+        card.addEventListener("click", function () {
+          const value = card.dataset.statFilter;
+          if (value === "pending") {
+            document.getElementById("pendingCard").scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+          statusFilter.value = statusFilter.value === value ? "" : value;
+          page = 1;
+          load();
+          body.closest(".rounded-3xl").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      // ---------- toast ----------
+      let toastTimer = null;
+      function toast(message, isError) {
+        const box = document.getElementById("umToast");
+        box.innerHTML = "";
+        const item = document.createElement("div");
+        item.className = "flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-lg " +
+          (isError ? "bg-red-50 border-red-200 text-red-700" : "bg-green-50 border-green-200 text-green-700");
+        const text = document.createElement("div");
+        text.className = "min-w-0 flex-1 text-sm font-medium break-words";
+        text.textContent = message;
+        item.appendChild(text);
+        box.appendChild(item);
+        box.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { box.classList.add("hidden"); }, 3500);
+      }
+
+      // ---------- confirm dialog ----------
+      const ACTIONS = {
+        approve: { title: "Approve {name}?", text: "They'll be able to log in, and they'll get an email saying their account was approved.",
+                   button: "Approve", color: "bg-blue-600 hover:bg-blue-700", icon: "bg-blue-50 text-blue-500", reason: false },
+        reject: { title: "Reject {name}?", text: "Their account request will be removed and they'll get an email. They can sign up again later.",
+                  button: "Reject", color: "bg-red-600 hover:bg-red-700", icon: "bg-red-50 text-red-500", reason: true },
+        deactivate: { title: "Deactivate {name}?", text: "They'll be signed out and won't be able to log in. Their reports and history stay intact.",
+                      button: "Deactivate", color: "bg-red-600 hover:bg-red-700", icon: "bg-red-50 text-red-500", reason: true },
+        reactivate: { title: "Reactivate {name}?", text: "They'll be able to log in again.",
+                      button: "Reactivate", color: "bg-blue-600 hover:bg-blue-700", icon: "bg-blue-50 text-blue-500", reason: false },
+        "delete": { title: "Delete {name}?", text: "This account never verified its email. Deleting it frees the email so they can sign up again.",
+                    button: "Delete", color: "bg-red-600 hover:bg-red-700", icon: "bg-red-50 text-red-500", reason: false },
+        make_admin: { title: "Make {name} an admin?", text: "They'll get admin access and an email notification. Enter your own password to confirm.",
+                      button: "Make admin", color: "bg-blue-600 hover:bg-blue-700", icon: "bg-blue-50 text-blue-500", reason: false, password: true },
+        remove_admin: { title: "Remove admin access from {name}?", text: "They'll go back to a regular account and lose access to the admin pages. They'll get an email about it.",
+                        button: "Remove admin", color: "bg-red-600 hover:bg-red-700", icon: "bg-red-50 text-red-500", reason: false, password: true },
+      };
+
+      const modal = document.getElementById("umModal");
+      const modalTitle = document.getElementById("umModalTitle");
+      const modalText = document.getElementById("umModalText");
+      const modalReason = document.getElementById("umModalReason");
+      const modalError = document.getElementById("umModalError");
+      const modalIcon = document.getElementById("umModalIcon");
+      const confirmBtn = document.getElementById("umModalConfirm");
+      let pending = null;
+
+      const passwordWrap = document.getElementById("umModalPasswordWrap");
+      const passwordInput = document.getElementById("umModalPassword");
+      const roleWrap = document.getElementById("umModalRoleWrap");
+      const roleSelect = document.getElementById("umModalRole");
+      const personnelWrap = document.getElementById("umModalPersonnelWrap");
+      const personnelSelect = document.getElementById("umModalPersonnel");
+      const personnelCategoryWrap = document.getElementById("umModalPersonnelCategoryWrap");
+      const personnelCategorySelect = document.getElementById("umModalPersonnelCategory");
+      const personnelOptions = JSON.parse(document.getElementById("med-personnel-options").textContent);
+      const personnelCategories = JSON.parse(document.getElementById("med-personnel-categories").textContent);
+
+      const roleLabel = document.getElementById("umModalRoleLabel");
+      const ROLE_NAMES = { student: "Student", faculty: "Faculty", staff: "Staff" };
+      function setRoleOptions(roles) {
+        roleSelect.innerHTML = '<option value="">Choose a role</option>' + roles.map(function (r) {
+          return '<option value="' + r + '">' + ROLE_NAMES[r] + "</option>";
+        }).join("");
+        if (window.CDD && CDD.refresh) CDD.refresh(roleSelect);
+      }
+      const addPersonnelOption = document.createElement("option");
+      addPersonnelOption.value = "__new__";
+      addPersonnelOption.textContent = "Add as a new MED personnel";
+      personnelSelect.appendChild(addPersonnelOption);
+      personnelOptions.forEach(function (personnel) {
+        const option = document.createElement("option");
+        option.value = personnel.slug;
+        option.textContent = personnel.category + " — " + personnel.name;
+        personnelSelect.appendChild(option);
+      });
+      personnelCategories.forEach(function (category) {
+        const option = document.createElement("option");
+        option.value = category[0];
+        option.textContent = category[1];
+        personnelCategorySelect.appendChild(option);
+      });
+      if (window.CDD && CDD.refresh) {
+        CDD.refresh(personnelSelect);
+        CDD.refresh(personnelCategorySelect);
+      }
+      function updatePersonnelCategoryVisibility() {
+        personnelCategoryWrap.classList.toggle("hidden", roleSelect.value !== "med_personnel" || personnelSelect.value !== "__new__");
+      }
+      personnelSelect.addEventListener("change", updatePersonnelCategoryVisibility);
+      roleSelect.addEventListener("change", function () {
+        personnelWrap.classList.toggle("hidden", roleSelect.value !== "med_personnel");
+        updatePersonnelCategoryVisibility();
+      });
+
+      function openModal(action, userId, name, currentRole, currentPersonnel, currentCategory) {
+        const cfg = ACTIONS[action];
+        // Accounts created as admins have no normal role to fall back to
+        const needsRole = action === "remove_admin" && (!currentRole || currentRole === "admin");
+        pending = { action: action, userId: userId, needsRole: needsRole };
+        passwordInput.value = "";
+        passwordWrap.classList.toggle("hidden", !cfg.password);
+        setRoleOptions(["student", "faculty", "staff"]);
+        roleLabel.textContent = "This account was created as an admin. What role should it have now?";
+        roleSelect.value = "";
+        personnelSelect.value = currentPersonnel && currentPersonnel.indexOf("account-") === 0 ? "__new__" : (currentPersonnel || "");
+        personnelCategorySelect.value = currentCategory || "";
+        if (window.CDD && CDD.refresh) {
+          CDD.refresh(personnelSelect);
+          CDD.refresh(personnelCategorySelect);
+        }
+        personnelWrap.classList.add("hidden");
+        updatePersonnelCategoryVisibility();
+        roleWrap.classList.toggle("hidden", !needsRole);
+        modalTitle.textContent = cfg.title.replace("{name}", name);
+        modalText.textContent = cfg.text;
+        modalReason.value = "";
+        modalReason.classList.toggle("hidden", !cfg.reason);
+        modalError.classList.add("hidden");
+        modalIcon.className = "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 " + cfg.icon;
+        confirmBtn.className = "flex-1 text-sm font-semibold text-white px-4 py-2.5 rounded-xl " + cfg.color;
+        confirmBtn.textContent = cfg.button;
+        confirmBtn.disabled = false;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        if (cfg.password) setTimeout(function () { (needsRole ? roleSelect : passwordInput).focus(); }, 50);
+      }
+
+      function closeModal() {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        pending = null;
+      }
+
+      document.getElementById("umModalCancel").addEventListener("click", closeModal);
+      modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
+
+      passwordInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); confirmBtn.click(); }
+      });
+
+      confirmBtn.addEventListener("click", function () {
+        if (!pending) return;
+        if (pending.needsRole && !roleSelect.value) {
+          modalError.textContent = "Choose which role this account should have.";
+          modalError.classList.remove("hidden");
+          return;
+        }
+        if (pending.action === "remove_admin" && roleSelect.value === "med_personnel" && !personnelSelect.value) {
+          modalError.textContent = "Choose an existing roster entry or add this account as a new personnel.";
+          modalError.classList.remove("hidden");
+          personnelSelect.focus();
+          return;
+        }
+        if (pending.action === "remove_admin" && roleSelect.value === "med_personnel" && personnelSelect.value === "__new__" && !personnelCategorySelect.value) {
+          modalError.textContent = "Choose the MED section for this new personnel.";
+          modalError.classList.remove("hidden");
+          personnelCategorySelect.focus();
+          return;
+        }
+        if (ACTIONS[pending.action].password && !passwordInput.value) {
+          modalError.textContent = "Enter your password to confirm.";
+          modalError.classList.remove("hidden");
+          passwordInput.focus();
+          return;
+        }
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Please wait...";
+        fetch(ACTION_URL.replace("/0/", "/" + pending.userId + "/"), {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
+          body: JSON.stringify({ action: pending.action, reason: modalReason.value, password: passwordInput.value, role: roleSelect.value, med_personnel_slug: personnelSelect.value, med_personnel_category: personnelCategorySelect.value }),
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok && d.ok, data: d }; }); })
+          .then(function (res) {
+            if (!res.ok) {
+              modalError.textContent = res.data.error || "Something went wrong. Please try again.";
+              modalError.classList.remove("hidden");
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = ACTIONS[pending.action].button;
+              return;
+            }
+            closeModal();
+            toast(res.data.message, false);
+            load();
+          })
+          .catch(function () {
+            modalError.textContent = "Couldn't reach the server. Please try again.";
+            modalError.classList.remove("hidden");
+            confirmBtn.disabled = false;
+          });
+      });
+
+      // Buttons in the list and the pending section are re-rendered, so delegate
+      document.addEventListener("click", function (e) {
+        const btn = e.target.closest("[data-um-action]");
+        if (!btn) return;
+        openModal(btn.dataset.umAction, btn.dataset.userId, btn.dataset.userName, btn.dataset.currentRole, btn.dataset.medPersonnelSlug, btn.dataset.medPersonnelCategory);
+      });
+
+      // ---------- import users from Excel ----------
+      const importModal = document.getElementById("importModal");
+      const importFile = document.getElementById("importFile");
+      const importFileName = document.getElementById("importFileName");
+      const importCheck = document.getElementById("importCheck");
+      const importConfirm = document.getElementById("importConfirm");
+      const steps = [1, 2, 3].map(function (n) { return document.getElementById("importStep" + n); });
+      let importToken = null, importCreated = false;
+
+      function showStep(n) {
+        steps.forEach(function (el, i) {
+          el.classList.toggle("hidden", i !== n - 1);
+          if (i === 1) el.classList.toggle("flex", n === 2);
+        });
+      }
+      function importError(step, message) {
+        const el = document.getElementById("importError" + step);
+        el.textContent = message || "";
+        el.classList.toggle("hidden", !message);
+      }
+      function escapeHtml(text) {
+        const d = document.createElement("div");
+        d.textContent = text == null ? "" : String(text);
+        return d.innerHTML;
+      }
+      function resetImport() {
+        importFile.value = "";
+        importFileName.textContent = "Click to choose an .xlsx file";
+        importCheck.disabled = true;
+        importCheck.textContent = "Check file";
+        importToken = null;
+        importError(1, ""); importError(2, "");
+        showStep(1);
+      }
+
+      document.getElementById("openImport").addEventListener("click", function () {
+        resetImport();
+        importCreated = false;
+        importModal.classList.remove("hidden");
+        importModal.classList.add("flex");
+      });
+      document.querySelectorAll("[data-import-close]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          importModal.classList.add("hidden");
+          importModal.classList.remove("flex");
+          if (importCreated) load();  // show the new accounts in the list
+        });
+      });
+      document.getElementById("importBack").addEventListener("click", resetImport);
+
+      importFile.addEventListener("change", function () {
+        const f = importFile.files[0];
+        importFileName.textContent = f ? f.name : "Click to choose an .xlsx file";
+        importCheck.disabled = !f;
+        importError(1, "");
+      });
+
+      importCheck.addEventListener("click", function () {
+        const f = importFile.files[0];
+        if (!f) return;
+        const form = new FormData();
+        form.append("file", f);
+        importCheck.disabled = true;
+        importCheck.textContent = "Checking...";
+        fetch("{% url 'user_import_preview' %}", {
+          method: "POST", credentials: "same-origin", headers: { "X-CSRFToken": csrf() }, body: form,
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            importCheck.disabled = false;
+            importCheck.textContent = "Check file";
+            if (!data.ok) { importError(1, data.error); return; }
+            importToken = data.token;
+            document.getElementById("importReady").textContent = data.valid_count + " ready to create";
+            const bad = document.getElementById("importBad");
+            bad.textContent = data.error_count + " with problems";
+            bad.classList.toggle("hidden", !data.error_count);
+            document.getElementById("importRows").innerHTML = data.rows.map(function (r) {
+              const status = r.errors.length
+                ? '<span class="text-red-600">' + r.errors.map(escapeHtml).join("<br>") + "</span>"
+                : '<span class="font-semibold text-green-600">Ready</span>';
+              return '<tr class="' + (r.errors.length ? "bg-red-50/40" : "") + '">' +
+                '<td class="py-2 pr-2 text-gray-400 align-top">' + r.row + "</td>" +
+                '<td class="py-2 pr-2 align-top">' + escapeHtml((r.first_name + " " + r.last_name).trim()) + "</td>" +
+                '<td class="py-2 pr-2 align-top break-all">' + escapeHtml(r.email) + "</td>" +
+                '<td class="py-2 pr-2 align-top capitalize">' + escapeHtml(r.role) + "</td>" +
+                '<td class="py-2 pr-2 align-top">' + escapeHtml(r.department) + "</td>" +
+                '<td class="py-2 align-top">' + status + "</td></tr>";
+            }).join("");
+            importConfirm.disabled = !data.valid_count;
+            importConfirm.textContent = data.valid_count
+              ? "Create " + data.valid_count + " account" + (data.valid_count === 1 ? "" : "s")
+              : "Nothing to create";
+            importError(2, "");
+            showStep(2);
+          })
+          .catch(function () {
+            importCheck.disabled = false;
+            importCheck.textContent = "Check file";
+            importError(1, "Couldn't reach the server. Please try again.");
+          });
+      });
+
+      importConfirm.addEventListener("click", function () {
+        if (!importToken) return;
+        importConfirm.disabled = true;
+        importConfirm.textContent = "Creating accounts and sending emails...";
+        fetch("{% url 'user_import_confirm' %}", {
+          method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
+          body: JSON.stringify({ token: importToken }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok) {
+              importError(2, data.error);
+              importConfirm.disabled = false;
+              importConfirm.textContent = "Try again";
+              return;
+            }
+            importCreated = data.created.length > 0;
+            document.getElementById("importResultTitle").textContent =
+              data.created.length + " account" + (data.created.length === 1 ? "" : "s") + " created";
+            const failedBox = document.getElementById("importFailed");
+            failedBox.classList.toggle("hidden", !data.failed.length);
+            document.getElementById("importFailedList").innerHTML = data.failed.map(function (f) {
+              return "<li>" + escapeHtml(f.email) + " — " + escapeHtml(f.reason) + "</li>";
+            }).join("");
+            showStep(3);
+          })
+          .catch(function () {
+            importError(2, "Couldn't reach the server. Check the user list before trying again.");
+            importConfirm.disabled = false;
+            importConfirm.textContent = "Try again";
+          });
+      });
+
+      load();
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fac-Check Privacy Policy</title>
+    <script src="{% static 'user/js/theme.js' %}"></script>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/auth_dark.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts/css/policy_text.css' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap"
+          rel="stylesheet" />
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'accounts/images/Fac-Check-Logo.png' %}?v=2" />
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body.fc-policy-page {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100svh;
+            padding: 24px 16px;
+            background: linear-gradient(160deg, #fbfdff 15%, #eef4fc 100%);
+            color: #18324b;
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .fc-policy-background {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .fc-policy-page main {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 640px;
+            margin-block: auto;
+        }
+
+        .fc-policy-card {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            padding: 32px 32px 26px;
+            border: 1px solid #e5edf7;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 16px 48px rgba(15, 76, 129, .08);
+        }
+
+        .fc-policy-card a {
+            color: #175b9b;
+        }
+
+        .fc-policy-card a:hover {
+            text-decoration: underline;
+        }
+
+        .fc-policy-back-link {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .fc-policy-heading {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .fc-policy-heading .fc-policy-back-link {
+            display: flex;
+            justify-content: flex-start;
+            width: fit-content;
+        }
+
+        .fc-policy-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 18px;
+            border-radius: 16px;
+            background: #edf4ff;
+        }
+
+        .fc-policy-logo img {
+            width: 26px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .fc-policy-heading h1 {
+            font-size: 22px;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -.6px;
+            color: #0f4c81;
+        }
+
+        .fc-policy-heading p {
+            margin-top: 12px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #526277;
+        }
+
+        /* Same scrolling text box as before: the card stays one screen tall */
+        .fc-policy-box {
+            max-height: min(340px, 52svh);
+            overflow-y: auto;
+        }
+
+        .fc-policy-page a:focus-visible,
+        .fc-policy-page button:focus-visible {
+            outline: 3px solid #427eb3;
+            outline-offset: 3px;
+        }
+
+        .fc-policy-footer {
+            position: relative;
+            text-align: center;
+            margin-top: 10px;
+            color: #526277;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .fc-policy-footer a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            color: #175b9b;
+        }
+
+        @media (max-width: 480px) {
+            body.fc-policy-page {
+                padding: 20px 12px;
+            }
+
+            .fc-policy-card {
+                padding: 28px 24px 24px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'accounts/css/account_pages.css' %}" />
+  </head>
+  <body class="fc-policy-page">
+    <svg class="fc-policy-background"
+         viewBox="0 0 1440 900"
+         preserveAspectRatio="xMidYMid slice"
+         fill="none"
+         aria-hidden="true">
+      <path d="M-100 800 C320 430 820 680 1550 350" stroke="#dbe8f8" stroke-width="2" />
+      <path d="M-100 850 C320 480 820 730 1550 400" stroke="#e2ecf9" stroke-width="2" />
+      <path d="M-100 880 C320 510 820 760 1550 430" stroke="#e2ecf9" stroke-width="2" />
+    </svg>
+    <main aria-labelledby="policy-title">
+      <div class="fc-policy-card">
+        <div class="fc-policy-heading">
+          <a href="{% url 'signup' %}" class="fc-policy-back-link fc-account-return">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="m14 7-5 5 5 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Back to sign up
+          </a>
+          <div class="fc-policy-logo">
+            <img src="{% static 'accounts/images/Fac-Check-Logo.png' %}" alt="Fac-Check" />
+          </div>
+          <h1 id="policy-title">Privacy Policy and Terms of Service</h1>
+          <p>Please review before creating your Fac-Check account.</p>
+        </div>
+
+        <div class="fc-policy-box" tabindex="0">
+          {% include "accounts/components/policy_text.html" %}
+        </div>
+      </div>
+    </main>
+    <footer class="fc-policy-footer">
+      <a href="{% url 'index' %}" class="fc-account-return">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="m14 7-5 5 5 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        Back to home
+      </a>
+      <p class="text-xs">&copy; 2026 Fac-Check. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

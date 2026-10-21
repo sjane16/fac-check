@@ -1,0 +1,33 @@
+{% comment %} Actions depend on the account state; buttons are handled by the page script (data-um-action) {% endcomment %}
+{% if u.pk == me.pk %}
+  <span class="text-xs font-semibold text-blue-500">You</span>
+{% elif u.um_is_head %}
+  <span class="text-xs text-gray-400" title="The Head Admin can only be changed by a developer">—</span>
+{% elif u.um_is_superuser %}
+  <span class="text-xs text-gray-400" title="Superuser (developer) accounts can only be changed by a developer">—</span>
+{% elif u.um_is_admin %}
+  <button type="button" data-um-action="remove_admin" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}" data-current-role="{{ u.um_base_role }}"
+          class="text-xs font-semibold text-gray-600 border border-gray-200 bg-white px-3 py-1.5 rounded-lg hover:bg-gray-50 whitespace-nowrap">Remove admin</button>
+{% elif u.um_status == 'pending' %}
+  <div class="flex items-center justify-center gap-1.5">
+    <button type="button" data-um-action="reject" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+            class="text-xs font-semibold text-gray-600 border border-gray-200 bg-white px-3 py-1.5 rounded-lg hover:bg-gray-50">Reject</button>
+    <button type="button" data-um-action="approve" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+            class="text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">Approve</button>
+  </div>
+{% elif u.um_status == 'active' %}
+  <div class="flex items-center justify-center gap-1.5">
+    <button type="button" data-um-action="deactivate" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+            class="text-xs font-semibold text-gray-600 border border-gray-200 bg-white px-3 py-1.5 rounded-lg hover:bg-gray-50">Deactivate</button>
+    {% if u.um_base_role == 'staff' %}
+      <button type="button" data-um-action="make_admin" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+              class="text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 whitespace-nowrap">Make Admin</button>
+    {% endif %}
+  </div>
+{% elif u.um_status == 'deactivated' %}
+  <button type="button" data-um-action="reactivate" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+          class="text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">Reactivate</button>
+{% else %}
+  <button type="button" data-um-action="delete" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+          class="text-xs font-semibold text-red-600 border border-red-200 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100">Delete</button>
+{% endif %}

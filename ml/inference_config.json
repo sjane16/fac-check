@@ -1,0 +1,34 @@
+{
+  "model_filename": "faccheck_cnn_model.keras",
+  "image_size": [
+    224,
+    224
+  ],
+  "color_mode": "RGB",
+  "resize_policy": "direct_resize_to_224x224_no_crop_or_padding",
+  "input_range": [
+    0,
+    255
+  ],
+  "input_scaling": "in_model_mobilenetv2_minus1_to_plus1",
+  "external_rescale": false,
+  "confidence_threshold": 0.3,
+  "margin_threshold": 0.12,
+  "fallback_label": "Others",
+  "has_trained_others_class": true,
+  "class_names": [
+    "Carpentry Masonry",
+    "Electrical",
+    "Others",
+    "Painting",
+    "Plumbing",
+    "Refrigeration ACUs",
+    "Vehicle Check-Up"
+  ],
+  "tensorflow_version": "2.21.0",
+  "keras_version": "3.13.2",
+  "python_version": "3.13.15",
+  "selected_training_phase": "phase1",
+  "seed": 42,
+  "run_id": "run_2026-10-21_014702_78b2"
+}

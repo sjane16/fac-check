@@ -1,0 +1,208 @@
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 leading-tight">Report a Concern</h1>
+    <p class="text-sm text-gray-500 mt-0.5">Upload a photo of your concerns/report.</p>
+</div>
+<!-- One form spanning the photo/AI and report details panels -->
+<form id="report-form"
+      method="POST"
+      enctype="multipart/form-data"
+      action="{% url 'reportForm' %}"
+      class="grid grid-cols-1 lg:grid-cols-2 items-start gap-0 lg:gap-6 bg-white border border-gray-100 rounded-2xl shadow-sm p-4 lg:bg-transparent lg:border-0 lg:rounded-none lg:shadow-none lg:p-0">
+    {% csrf_token %}
+    <div class="min-w-0 border-b border-gray-100 pb-6 mb-6 lg:mb-0 lg:bg-white lg:border lg:border-gray-100 lg:rounded-2xl lg:shadow-sm lg:p-6">
+        <!-- Photo Upload Area -->
+        <div class="mb-6">
+            <label for="photo-upload"
+                   id="dropzone"
+                   class="border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center h-80 px-6 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200 group relative overflow-hidden">
+                <img id="preview-image"
+                     alt="Photo preview"
+                     class="hidden absolute inset-0 w-full h-full object-cover cursor-zoom-in" />
+                <div id="upload-content"
+                     class="flex flex-col items-center justify-center text-center">
+                    <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-7 h-7 text-blue-500"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                        </svg>
+                    </div>
+                    <p class="text-sm font-bold text-gray-900">Click to upload photo <span class="text-red-500" aria-hidden="true">*</span></p>
+                    <p class="text-sm text-gray-400 mt-1">or drag and drop your file here</p>
+                    <p class="text-xs text-gray-400 mt-1">JPG, PNG up to 10MB</p>
+                </div>
+                <div id="error-message"
+                     class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 bg-red-500 text-white text-xs px-3 py-1 rounded-full">
+                    File too large (max 10MB)
+                </div>
+            </label>
+            <div id="preview-actions" class="hidden mt-3 flex flex-col items-center gap-2">
+                <p class="text-xs text-gray-400">Click photo to enlarge</p>
+                <div class="flex items-center gap-2">
+                    <button type="button"
+                            id="change-photo-btn"
+                            class="text-xs font-semibold text-blue-600 hover:text-blue-700 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors">
+                        Change photo
+                    </button>
+                    <button type="button"
+                            id="remove-photo-btn"
+                            class="text-xs font-semibold text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 transition-colors">
+                        Remove
+                    </button>
+                </div>
+            </div>
+            <!-- IMPORTANT: walang required dito para Django toast ang lalabas -->
+            <input id="photo-upload"
+                   name="photo"
+                   type="file"
+                   class="hidden"
+                   accept="image/jpeg,image/png" />
+            {% if form.photo.errors %}
+                <p class="text-xs text-red-500 mt-2">{{ form.photo.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        <div class="space-y-4">
+            <div class="min-w-0">
+                <label for="id_category" class="block text-sm font-semibold text-gray-800 mb-2">AI Recommended Category <span class="ml-1 text-red-500" aria-hidden="true">*</span></label>
+                <div class="relative" id="category-wrapper">
+                    {{ form.category }}
+                    <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-5 h-5 text-gray-400"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="2"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                </div>
+                <p id="cnn-confidence" class="hidden mt-2 text-xs text-gray-500" role="status" aria-live="polite"></p>
+                <div id="cnn-error" class="hidden mt-2 text-xs text-red-600" role="alert">
+                    <span id="cnn-error-text"></span>
+                    <button type="button"
+                            id="cnn-retry-btn"
+                            class="ml-1 font-semibold text-blue-600 hover:text-blue-700 underline">
+                        Try again
+                    </button>
+                </div>
+            </div>
+            <div id="custom-category-wrapper" class="min-w-0 hidden">
+                <label for="id_custom_category" class="block text-sm font-semibold text-gray-800 mb-2">Custom Category</label>
+                <input type="text"
+                       name="custom_category"
+                       id="id_custom_category"
+                       maxlength="30"
+                        class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Specify your concern" />
+            </div>
+        </div>
+        <p id="category-hint"
+           class="hidden mt-4 text-xs text-blue-600 flex items-center gap-2"></p>
+    </div>
+    <div class="min-w-0 lg:bg-white lg:border lg:border-gray-100 lg:rounded-2xl lg:shadow-sm p-0 lg:p-6">
+        <!-- Location -->
+        <div class="mb-5">
+            <label class="block text-sm font-semibold text-gray-800 mb-2">Building / Facility <span class="ml-1 text-red-500" aria-hidden="true">*</span></label>
+            <div class="relative">
+                {{ form.building }}
+                <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-5 h-5 text-gray-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="2"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+            </div>
+            {% if form.building.errors %}
+                <p class="text-xs text-red-500 mt-1">{{ form.building.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        <!-- Floor -->
+        <div class="mb-5" id = "floor-field">
+            <label class="block text-sm font-semibold text-gray-800 mb-2">Floor <span class="ml-1 text-red-500" aria-hidden="true">*</span></label>
+            <div class="relative" id="floor-wrapper">
+                {{ form.floor }}
+                <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-5 h-5 text-gray-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="2"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+            </div>
+            <!-- Hidden by default. Only shown briefly on tap-while-locked,
+     or for a genuine "no floors available" result. -->
+            <p id="floor-hint" class="text-xs mt-1.5 text-gray-400 hidden"></p>
+            {% if form.floor.errors %}
+                <p class="text-xs text-red-500 mt-1">{{ form.floor.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        <!-- Room -->
+        <div class="mb-5" id="room-field">
+            <label class="block text-sm font-semibold text-gray-800 mb-2">Room / Area <span class="ml-1 text-red-500" aria-hidden="true">*</span></label>
+            <div class="relative" id="room-wrapper">
+                {{ form.location }}
+                <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-5 h-5 text-gray-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke-width="2"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </div>
+            </div>
+            <!-- Hidden by default. Only shown briefly on tap-while-locked,
+     or for a genuine "no rooms available" result. -->
+            <p id="room-hint" class="text-xs mt-1.5 text-gray-400 hidden"></p>
+            {% if form.location.errors %}
+                <p class="text-xs text-red-500 mt-1">{{ form.location.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label for="id_inventory_tag_no" class="block text-sm font-semibold text-gray-800 mb-2">Inventory Tag No. </label>
+                {{ form.inventory_tag_no }}
+                {% if form.inventory_tag_no.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ form.inventory_tag_no.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="id_property_inventory_no" class="block text-sm font-semibold text-gray-800 mb-2">Property Inventory No. </label>
+                {{ form.property_inventory_no }}
+                {% if form.property_inventory_no.errors %}
+                    <p class="text-xs text-red-500 mt-1">{{ form.property_inventory_no.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-800 mb-2">Description <span class="ml-1 text-red-500" aria-hidden="true">*</span></label>
+            <textarea name="description"
+                      rows="5"
+                      maxlength="300"
+                      placeholder="Describe the issue of the concern. (300 max characters)"
+                      class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y">{{ form.description.value|default:'' }}</textarea>
+            {% if form.description.errors %}
+                <p class="text-xs text-red-500 mt-1">{{ form.description.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        <!-- Submit -->
+        <button id="submit-button"
+                type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm py-4 rounded-xl transition-colors duration-200">
+            Submit Report
+        </button>
+    </div>
+</form>

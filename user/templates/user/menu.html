@@ -1,0 +1,219 @@
+{% extends "user/layouts/base.html" %} {% block title %}Menu{% endblock %} {% load static %}
+{% block content %}
+  <main class="flex-1 px-6 lg:px-10 xl:px-16 pt-6 pb-32 lg:pb-10 w-full">
+    <h1 class="text-2xl font-bold text-gray-800">My Profile</h1>
+    <p class="text-sm text-gray-500 mt-1 mb-6">Manage your account information and security settings.</p>
+    {% if is_post_render %}
+      <div id = "menu-content">{% include 'user/partials/_menu_content.html' %}</div>
+    {% else %}
+      <div id="menu-skeleton" class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <!-- LEFT Skeleton -->
+        <div class="xl:col-span-1">
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6 flex flex-col items-center text-center gap-4">
+            <div class="skeleton w-24 h-24 rounded-full"></div>
+            <div class="space-y-2 flex flex-col items-center w-full">
+              <div class="skeleton h-5 w-40 rounded mx-auto"></div>
+              <div class="skeleton h-5 w-24 rounded-full mx-auto"></div>
+            </div>
+            <div class="skeleton h-9 w-full rounded-xl"></div>
+            <div class="skeleton h-9 w-full rounded-xl"></div>
+            <div class="skeleton h-3 w-32 rounded"></div>
+            <hr class="w-full border-gray-100" />
+            <div class="w-full flex flex-col gap-2">
+              {% for n in "1234" %}
+                <div class="skeleton h-10 w-full rounded-xl"></div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <!--RIGHT Skeleton-->
+        <div class="xl:col-span-2 flex flex-col gap-4">
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6">
+            <div class="skeleton h-5 w-40 rounded mb-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              {% for n in "1234" %}<div class="skeleton h-11 w-full rounded-xl"></div>{% endfor %}
+            </div>
+            <div class="skeleton h-11 w-full rounded-xl mb-1.5"></div>
+            <div class="skeleton h-11 w-full rounded-xl mt-4"></div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-3xl shadow-sm p-6">
+            <div class="skeleton h-5 w-4 rounded mb-4"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+              {% for n in "123" %}<div class="skeleton h-11 w-full rounded-xl"></div>{% endfor %}
+            </div>
+            <div class="skeleton h-11 w-full rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+      <div id="menu-content" class="hidden"></div>
+    {% endif %}
+    <div class="lg:hidden mt-6 pt-4 border-t border-gray-200">
+      <button type="button"
+              onclick="openLogoutModal()"
+              class="flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+        </svg>
+        Log out
+      </button>
+    </div>
+  </main>
+  <script src="{% static 'accounts/js/passkeys.js' %}"></script>
+  <script src="{% static 'user/js/password_change.js' %}"></script>
+  <script>
+      function setButtonLoading(btnId, spinnerId, textId, loadingText) {
+          const btn = document.getElementById(btnId);
+          if (!btn) return;
+          btn.disabled = true;
+          btn.classList.add("opacity-70", "cursor-not-allowed");
+          const spinner = spinnerId ? document.getElementById(spinnerId) : null;
+          if (spinner) spinner.classList.remove("hidden");
+          const text = textId ? document.getElementById(textId) : null;
+          if (text && loadingText) text.textContent = loadingText;
+      }
+
+      function initMenuPage() {
+          initPasswordChecklistToggle();
+          initPasswordChangeButton();
+          initPasswordModalOverlay();
+          // Staff who pick "Other Office or Area" get a box to type their own office
+          (function() {
+              const dept = document.getElementById("id_department");
+              const wrap = document.getElementById("other_office_wrap");
+              const input = document.getElementById("other_office_input");
+              if (!dept || !wrap || !input) return;
+              function toggleOther() {
+                  const show = dept.value === "{{ user.profile.OTHER_OFFICE_CODE }}";
+                  wrap.classList.toggle("hidden", !show);
+                  input.required = show;
+                  if (!show) input.value = "";
+              }
+              dept.addEventListener("change", toggleOther);
+              toggleOther();
+          })();
+          // Contact Number field: strips non-digit characters and caps input at 11 chars while typing
+          const phoneInput = document.getElementById("phone_input");
+          if (phoneInput) {
+              //Remove non-digit characters
+              phoneInput.addEventListener("input", function() {
+                  this.value = this.value.replace(/\D/g, "").slice(0, 11);
+                  validatePhone();
+              });
+          }
+
+          // Checks phone is exactly 11 digits; toggles the red error text below the field
+          window.validatePhone = function() {
+              const phone = document.getElementById("phone_input");
+              const validation = document.getElementById("phone-validation");
+              if (!phone) return true;
+
+              if (phone.value.length === 0) {
+                  validation.classList.add("hidden");
+                  return true;
+              }
+              const isValid = /^\d{11}$/.test(phone.value);
+              validation.classList.toggle("hidden", isValid);
+              return isValid;
+          };
+
+          // Enables the "Save Changes" button as soon as user edits any profile info field (starts disabled)
+          (function() {
+              const editForm = document.getElementById("edit_info_form");
+              const saveBtn = document.getElementById("save_info_btn");
+              if (!editForm || !saveBtn) return;
+
+              function enableSaveBtn() {
+                  saveBtn.disabled = false;
+                  saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
+              }
+
+              editForm.querySelectorAll("input, select").forEach((field) => {
+                  field.addEventListener("input", enableSaveBtn);
+                  field.addEventListener("change", enableSaveBtn);
+              });
+          })();
+
+          // Profile photo upload: live preview before saving
+          const photoInput = document.getElementById("photo_input");
+          const photoPreview = document.getElementById("photo_preview");
+          const defaultAvatar = document.getElementById("default_avatar");
+          const savePhotoBtn = document.getElementById("save_photo_btn");
+
+
+          if (photoInput) {
+              photoInput.addEventListener("change", function() {
+                  const file = this.files[0];
+                  if (file) {
+                      const reader = new FileReader();
+                      reader.onload = function(e) {
+                          photoPreview.src = e.target.result;
+                          photoPreview.classList.remove("hidden");
+                          if (defaultAvatar) defaultAvatar.classList.add("hidden");
+                          savePhotoBtn.classList.remove("hidden");
+                      };
+                      reader.readAsDataURL(file);
+                  }
+              });
+          }
+
+          //Attach spinners on  submit listeners 
+          const editForm = document.getElementById("edit_info_form")
+          if (editForm) {
+              editForm.addEventListener("submit", function() {
+                  setButtonLoading("save_info_btn", "save_info_spinner", "save_info_text", "Saving...");
+              });
+          }
+
+          const photoForm = document.getElementById("photo_form");
+          if (photoForm) {
+              photoForm.addEventListener("submit", function() {
+                  setButtonLoading("save_photo_btn", "save_photo_spinner", "save_photo_text", "Saving...");
+              });
+          }
+
+          const removePhotoForm = document.getElementById("remove_photo_form");
+          if (removePhotoForm) {
+              removePhotoForm.addEventListener("submit", function() {
+                  setButtonLoading("remove_photo_btn", "remove_photo_spinner", "remove_photo_text", "Removing...")
+              });
+          }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          {% if is_post_render %}
+          initMenuPage();
+          {% else %}
+          fetch("{% url 'menuAjax' %}")
+              .then(function(res) {
+                  return res.json();
+              })
+              .then(function(data) {
+                  var skeleton = document.getElementById('menu-skeleton');
+                  var content = document.getElementById('menu-content')
+
+                  content.innerHTML = data.html;
+                  content.style.opacity = '0';
+                  content.classList.remove('hidden');
+
+                  skeleton.style.transition = 'opacity 0.25s ease-out';
+                  skeleton.style.opacity = '0';
+
+                  setTimeout(function() {
+                      skeleton.classList.add('hidden');
+                      content.style.transition = 'opacity 0.25s ease in';
+                      requestAnimationFrame(function() {
+                          content.style.opacity = '1';
+                      });
+                      initMenuPage();
+                  }, 250);
+              })
+              .catch(function(error) {
+                  console.error('Failed to load menu:', error)
+              });
+          {% endif %}
+      });
+  </script>
+{% endblock %}

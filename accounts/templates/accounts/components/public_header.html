@@ -1,0 +1,39 @@
+{% load static %}
+<header class="fixed inset-x-0 top-0 z-20 border-b border-slate-200/80 bg-white shadow-lg shadow-slate-900/10">
+                <nav id="landing-nav"
+                     aria-label="Main navigation"
+                     class="flex w-full flex-wrap items-center justify-between gap-x-6 gap-y-3 px-3 py-4 sm:px-5">
+                    <a href="{% url 'index' %}"
+                       class="inline-flex min-h-11 items-center gap-2 rounded-md text-xl font-bold tracking-tight text-[#0F4C81]">
+                        <img src="{% static 'accounts/images/Fac-Check-Logo.png' %}"
+                             width="36"
+                             height="40"
+                             alt=""
+                             class="h-10 w-9 object-contain" />
+                        <span>Fac-Check</span>
+                    </a>
+                    <button id="landing-menu-toggle"
+                            type="button"
+                            aria-label="Open navigation menu"
+                            aria-controls="landing-menu"
+                            aria-expanded='false'
+                            hidden>
+                        <span class="menu-icon" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </button>
+                    <div id="landing-menu"
+                         class="flex items-center gap-2 text-sm font-medium sm:gap-3">
+                        <a href="{% url 'index' %}#about"
+                           class="inline-flex min-h-11 items-center rounded-md px-3 text-slate-600 underline-offset-4 hover:text-blue-700 hover:underline">About</a>
+                        <a href="{% url 'contact' %}"
+                           class="inline-flex min-h-11 items-center rounded-md px-3 text-slate-600 underline-offset-4 hover:text-blue-700 hover:underline">Contact Us</a>
+                        <a href="{% url 'login' %}"
+                           class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-5 text-slate-700 transition-colors hover:border-blue-300 hover:text-blue-700 motion-reduce:transition-none">Sign in</a>
+                        <a href="{% url 'signup' %}"
+                           class="inline-flex min-h-11 items-center rounded-lg bg-[#0F4C81] px-5 text-white transition-colors hover:bg-[#0d3f6b] active:bg-[#0a3557] motion-reduce:transition-none">Register</a>
+                    </div>
+                </nav>
+            </header>

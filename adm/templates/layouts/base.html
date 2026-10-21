@@ -1,0 +1,122 @@
+{% load static tailwind_tags %}
+{% load static %}
+<html lang="en" class="fc-app min-h-full bg-gray-50">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Fac-Check{% endblock %}</title>
+    <script src="{% static 'user/js/theme.js' %}"></script>
+    {% tailwind_css %}
+    <script src="{% static 'cdd/custom-dropdown.js' %}?v=2" defer></script>
+    <link rel="stylesheet" href="{% static 'submission-state.css' %}">
+    <script src="{% static 'submission-state.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet" />
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'adm/images/Fac-Check-Logo.png' %}?v=2" />
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        :root.dark {
+            color-scheme: dark;
+        }
+
+        @view-transition {
+            navigation: auto;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            width: 100%;
+            margin: 0;
+            background: var(--color-gray-50, #f9fafb);
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+    </style>
+  </head>
+  <body class="bg-gray-50 font-[Poppins] min-h-screen w-full">
+    <!-- TOAST NOTIFICATIONS -->
+    {% include "components/toast.html" %}
+    <div class="flex min-h-screen w-full bg-gray-50">
+      <!-- DESKTOP SIDEBAR -->
+      {% include "components/sidebar.html" %}
+      <!-- MAIN WRAPPER -->
+      <div class="flex-1 min-w-0 min-h-screen w-full lg:ml-64 flex flex-col bg-gray-50">
+        <!-- MOBILE HEADER -->
+        {% include "components/mobile_header.html" %}
+        <!-- PAGE CONTENT -->
+        <main class="relative flex-1 min-w-0 w-full bg-gray-50">
+          <!-- DESKTOP NOTIFICATION BELL (aligns with top-right of page content, scrolls away with it) -->
+          {% include "components/desktop_notif.html" %}
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+      <!-- MOBILE BOTTOM NAV -->
+      {% include "components/mobile_nav.html" %}
+    </div>
+    <!-- Logout Confirmation Modal -->
+    <div id="logout_modal"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div class="bg-white rounded-2xl shadow-xl p-6 w-80 mx-4">
+        <div class="flex flex-col items-center text-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+            <svg class="w-6 h-6 text-red-500"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+            </svg>
+          </div>
+          <h2 class="text-base font-bold text-gray-900">Log out?</h2>
+          <p class="text-sm text-gray-500">Are you sure you want to log out?</p>
+        </div>
+        <div class="flex flex-col gap-2">
+          <!-- Yes: submits the logout form -->
+          <form method="POST" action="{% url 'logoutadmin' %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="w-full text-sm font-semibold text-white bg-red-500 px-4 py-2 rounded-xl hover:bg-red-600 transition-colors">
+              Yes, log out
+            </button>
+          </form>
+          <!-- No: closes the modal -->
+          <button type="button"
+                  onclick="closeLogoutModal()"
+                  class="w-full text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Logout Modal Script -->
+    <script>
+        function openLogoutModal() {
+            const modal = document.getElementById("logout_modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById("logout_modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        // Close modal when clicking outside
+        document
+            .getElementById("logout_modal")
+            .addEventListener("click", function(e) {
+                if (e.target === this) closeLogoutModal();
+            });
+    </script>
+  </body>
+</html>

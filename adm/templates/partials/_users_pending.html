@@ -1,0 +1,62 @@
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-100 px-4 py-3 lg:px-5">
+  <h2 class="text-base font-bold text-gray-900 lg:text-lg">Staff waiting for approval</h2>
+  {% if pending_users %}
+    <span class="rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-600 lg:bg-gray-100 lg:text-gray-600">{{ pending_users|length }} pending</span>
+  {% endif %}
+</div>
+<div class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:block lg:divide-y lg:divide-gray-100 lg:p-0" role="region" aria-label="Pending staff accounts">
+  {% if pending_users %}
+    {% for u in pending_users %}
+      <article id="staff-{{ u.pk }}" tabindex="-1" class="grid min-w-0 grid-cols-1 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm focus:outline-none target:ring-2 target:ring-blue-100 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-4 lg:rounded-none lg:border-0 lg:shadow-none lg:target:bg-blue-50 lg:target:ring-0 xl:grid-cols-[minmax(0,1.35fr)_minmax(160px,1.2fr)_minmax(115px,0.8fr)_minmax(110px,0.75fr)_auto] xl:items-center xl:gap-x-4 xl:px-4">
+        <div class="flex min-w-0 items-center gap-3 px-4 pt-4 lg:col-start-1 lg:row-start-1 lg:px-4 lg:py-3 xl:px-0">
+          <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-orange-100 text-sm font-bold text-orange-600 lg:bg-gray-100 lg:text-gray-700">
+            {% if u.profile.profile_photo %}
+              <img src="{{ u.profile.profile_photo.url }}" alt="" class="h-full w-full object-cover" />
+            {% else %}
+              {{ u.um_initials }}
+            {% endif %}
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="truncate text-sm font-semibold text-gray-900">{{ u.get_full_name|default:u.email }}</p>
+            </div>
+            <p class="mt-0.5 truncate text-xs text-gray-500">{{ u.email }}</p>
+          </div>
+        </div>
+        <dl class="order-1 mt-4 grid min-w-0 grid-cols-1 gap-2 border-t border-gray-100 bg-white px-4 py-3 text-sm text-gray-700 lg:order-none lg:col-span-2 lg:row-start-2 lg:mt-0 lg:grid lg:grid-cols-3 lg:gap-6 lg:border-t lg:bg-gray-50 lg:px-6 lg:py-4 xl:contents">
+          <div class="flex min-w-0 items-center gap-2 lg:flex-col lg:items-start lg:justify-start lg:gap-1 xl:col-start-2 xl:row-start-1 xl:self-start xl:px-3 xl:py-3">
+            <svg class="h-4 w-4 flex-shrink-0 text-gray-400 lg:hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5M3.75 3v18m16.5-18v18M6.75 6.75h3m-3 3.75h3m-3 3.75h3m4.5-10.5h3m-3 3.75h3m-3 3.75h3M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>
+            <dt class="sr-only text-xs font-medium text-gray-500 lg:not-sr-only">Office</dt>
+            <dd class="min-w-0 break-words font-medium text-gray-800">{{ u.profile.department_name|default:"No department" }}</dd>
+          </div>
+          <div class="flex min-w-0 items-center gap-2 lg:flex-col lg:items-start lg:justify-start lg:gap-1 xl:col-start-3 xl:row-start-1 xl:self-start xl:px-3 xl:py-3">
+            <svg class="h-4 w-4 flex-shrink-0 text-gray-400 lg:hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" /></svg>
+            <dt class="sr-only text-xs font-medium text-gray-500 lg:not-sr-only">Phone</dt>
+            <dd class="min-w-0 break-words font-medium tabular-nums text-gray-800">{{ u.profile.phone|default:"No phone" }}</dd>
+          </div>
+          <div class="flex min-w-0 items-center gap-2 text-gray-500 lg:flex-col lg:items-start lg:justify-start lg:gap-1 xl:col-start-4 xl:row-start-1 xl:self-start xl:px-3 xl:py-3">
+            <svg class="h-4 w-4 flex-shrink-0 text-gray-400 lg:hidden" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            <dt class="sr-only text-xs font-medium text-gray-500 lg:not-sr-only">Signed up</dt>
+            <dd>{% with ago=u.um_signup_age %}{% if ago|first == "0" %}Just now{% else %}{{ ago }} ago{% endif %}{% endwith %}</dd>
+          </div>
+        </dl>
+        <div class="order-2 flex gap-2 px-4 pb-4 pt-3 lg:col-start-2 lg:row-start-1 lg:order-none lg:items-center lg:px-4 lg:py-3 xl:col-start-5 xl:px-0">
+          <button type="button" data-um-action="approve" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+                  aria-label="Approve {{ u.get_full_name|default:u.email }}"
+                  class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition-colors hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 lg:flex-none lg:border-blue-600 lg:bg-blue-600 lg:text-white lg:hover:border-blue-700 lg:hover:bg-blue-700">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            Approve
+          </button>
+          <button type="button" data-um-action="reject" data-user-id="{{ u.pk }}" data-user-name="{{ u.get_full_name|default:u.email }}"
+                  aria-label="Reject {{ u.get_full_name|default:u.email }}"
+                  class="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 lg:flex-none">Reject</button>
+        </div>
+      </article>
+    {% endfor %}
+  {% else %}
+    <div class="flex items-center gap-3 px-4 py-5 lg:px-6">
+      <svg class="h-5 w-5 flex-shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+      <p class="text-sm text-gray-600"><span class="font-semibold text-gray-700">No staff accounts awaiting approval.</span> New staff sign-ups will appear here.</p>
+    </div>
+  {% endif %}
+</div>

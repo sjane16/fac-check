@@ -1,0 +1,134 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description"
+              content="Get in touch with the Fac-Check team for help with your account or questions about facility reporting.">
+        <title>Contact Us</title>
+        <script src="{% static 'user/js/theme.js' %}"></script>
+        <link rel="icon"
+              type="image/png"
+              href="{% static 'accounts/images/Fac-Check-Logo.png' %}">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap"
+              rel="stylesheet">
+        {% tailwind_css %}
+        <link rel="stylesheet" href="{% static 'accounts/css/contact.css' %}">
+        <link rel="stylesheet" href="{% static 'accounts/css/account_pages.css' %}">
+        <link rel="stylesheet" href="{% static 'accounts/css/public_header.css' %}">
+        <link rel="stylesheet" href="{% static 'accounts/css/landing_dark.css' %}" />
+    </head>
+    <body>
+        <a class="skip-link" href="#main-content">Skip to content</a>
+        {% include "accounts/components/public_header.html" %}
+        <svg class="contact-background"
+             viewBox="0 0 1440 900"
+             preserveAspectRatio="xMidYMid slice"
+             fill="none"
+             aria-hidden="true">
+            <path d="M-100 800 C320 430 820 680 1550 350" stroke="#dbe8f8" stroke-width="2" />
+            <path d="M-100 850 C320 480 820 730 1550 400" stroke="#e2ecf9" stroke-width="2" />
+            <path d="M-100 880 C320 510 820 760 1550 430" stroke="#e2ecf9" stroke-width="2" />
+        </svg>
+        <main id="main-content" tabindex="-1">
+            <a class="fc-account-return" href="{% url 'index' %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="m14 7-5 5 5 5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                Back to home
+            </a>
+            <div class="contact-layout">
+                <section class="contact-intro" aria-labelledby="contact-title">
+                    <h1 id="contact-title">
+                        Let’s get you
+                        <br>
+                        the help you need.
+                    </h1>
+                    <p class="intro-copy">Have a question about Fac-Check or need help with your account? Get in touch with our team.</p>
+                    <div class="contact-details" aria-label="Contact information">
+                        <div class="contact-detail">
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                                <rect x="3" y="5" width="18" height="14" rx="3" />
+                                <path d="m4 7 8 6 8-6" />
+                            </svg>
+                            <div><span class="detail-label">Email</span><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></div>
+                        </div>
+                        <div class="contact-detail">
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                                <path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z" />
+                                <circle cx="12" cy="10" r="2.5" />
+                            </svg>
+                            <div><span class="detail-label">Office</span><span>Maintenance and Engineering Division</span></div>
+                        </div>
+                        <div class="contact-detail">
+                            <svg aria-hidden="true" viewBox="0 0 24 24">
+                                <path d="m8 3 3 5-3 3a16 16 0 0 0 5 5l3-3 5 3c0 3-2 5-5 5C9 20 4 15 3 8c0-3 2-5 5-5Z" />
+                            </svg>
+                            <div><span class="detail-label">Phone</span><span>+63 906 520 8749</span></div>
+                        </div>
+                    </div>
+                </section>
+                <section class="form-panel" aria-labelledby="form-title">
+                    <h2 id="form-title">Send us a message</h2>
+                    <p class="form-intro"
+                       id="contact-form-note">Tell us how we can help with your account or the system.</p>
+                    <form id="contact-form" method="post" action="{% url 'contact' %}" aria-describedby="contact-form-note" novalidate>
+                        {% csrf_token %}
+                        <input type="text" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px">
+                        <div class="field">
+                            <label for="contact-name">Full name</label><input required
+       id="contact-name"
+       name="name"
+       value="{{ submitted.name|default:'' }}"
+       type="text"
+       autocomplete="name"
+       placeholder="Your full name"
+       maxlength="120">
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label for="contact-email">Email address</label><input required
+       id="contact-email"
+       name="email"
+       value="{{ submitted.email|default:'' }}"
+       type="email"
+       autocomplete="email"
+       placeholder="you@example.com"
+       maxlength="254">
+                            </div>
+                            <div class="field">
+                                <label for="contact-phone">Phone number <span class="optional">(optional)</span></label><input id="contact-phone"
+       name="phone"
+       value="{{ submitted.phone|default:'' }}"
+       type="tel"
+       autocomplete="tel"
+       placeholder="Your phone number"
+       maxlength="30">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="contact-message">Message</label><textarea required
+          id="contact-message"
+          name="message"
+          rows="3"
+          placeholder="Tell us how we can help."
+          maxlength="3000">{{ submitted.message|default:'' }}</textarea>
+                        </div>
+                        <p class="privacy-note">Please don’t include passwords or verification codes. <a href="{% url 'privacy_policy' %}">Privacy Policy</a></p>
+                        <button class="button send-button" type="submit">Send message</button>
+                        <div id="contact-feedback"
+                             class="form-feedback"
+                             role="status"
+                             tabindex="-1"
+                             {% if not form_error and not messages %}hidden{% endif %}>{% if form_error %}{{ form_error }}{% endif %}{% for message in messages %}{{ message }}{% endfor %}</div>
+                        {% for field, error in form_errors.items %}<p class="field-error">{{ field|capfirst }}: {{ error }}</p>{% endfor %}
+                    </form>
+                </section>
+            </div>
+        </main>
+        <footer class="site-footer"><span>© {% now "Y" %} Fac-Check, Universidad de Manila.</span><a href="{% url 'privacy_policy' %}">Privacy Policy</a></footer>
+        <script src="{% static 'accounts/js/public_header.js' %}"></script>
+        <script src="{% static 'accounts/js/contact.js' %}"></script>
+    </body>
+</html>

@@ -1,0 +1,236 @@
+<svg class="wink" xmlns="http://www.w3.org/2000/svg" viewBox="-30 -40 300 300" role="img" aria-label="Checky"><style><![CDATA[
+
+
+  svg * { transform-box: fill-box; }
+
+  /* ---------------- 1) WINK + CUTE GESTURES (4s loop) ---------------- */
+  .wink #char      { transform-origin: 50% 100%; animation: w-char 4s infinite; }
+  .wink #shadow    { transform-origin: 50% 50%;  animation: w-shadow 4s infinite; }
+  .wink #eyeR      { transform-origin: 50% 50%;  animation: w-eyeR 4s infinite; }
+  .wink #eyeL      { transform-origin: 50% 50%;  animation: w-eyeL 4s infinite; }
+  .wink #winkR     { animation: w-winkArc 4s infinite; }
+  .wink #mouth     { animation: w-mouth 4s infinite; }
+  .wink #mouthBig  { animation: w-mouthBig 4s infinite; }
+  .wink #cheeks    { transform-origin: 50% 50%;  animation: w-cheeks 4s infinite; }
+  .wink #earL      { transform-origin: 50% 90%;  animation: w-earL 4s infinite; }
+  .wink #earR      { transform-origin: 50% 90%;  animation: w-earR 4s infinite; }
+  .wink #badge     { transform-origin: 50% 50%;  animation: w-badge 4s infinite; }
+  .wink #hearts    { animation: w-hearts 4s infinite; }
+  .wink #sparkles  { transform-origin: 50% 50%;  animation: w-sparkles 4s infinite; }
+  .wink #dots      { animation: dots-float 2s ease-in-out infinite; }
+
+  @keyframes w-char {
+    0%   { transform: translateY(0) rotate(0) scale(1, 1); animation-timing-function: ease-in-out; }
+    10%  { transform: translateY(-5px) rotate(0) scale(1, 1); animation-timing-function: ease-in-out; }
+    20%  { transform: translateY(0) rotate(-9deg) scale(1, 1); }
+    44%  { transform: translateY(0) rotate(-9deg) scale(1, 1); animation-timing-function: ease-in-out; }
+    52%  { transform: translateY(0) rotate(0) scale(1, 1); animation-timing-function: ease-out; }
+    58%  { transform: translateY(0) rotate(0) scale(1.07, 0.9); animation-timing-function: ease-out; }
+    66%  { transform: translateY(-30px) rotate(0) scale(0.95, 1.06); animation-timing-function: ease-in; }
+    74%  { transform: translateY(0) rotate(0) scale(1.06, 0.93); animation-timing-function: ease-out; }
+    80%  { transform: translateY(0) rotate(0) scale(0.98, 1.02); }
+    86%  { transform: translateY(0) rotate(0) scale(1, 1); }
+    100% { transform: translateY(0) rotate(0) scale(1, 1); }
+  }
+  @keyframes w-shadow {
+    0%, 58%, 74%, 100% { transform: scale(1); opacity: 1; }
+    10% { transform: scale(0.92); opacity: 0.85; }
+    66% { transform: scale(0.7); opacity: 0.55; }
+  }
+  /* right eye closes for the wink, both eyes blink near the end */
+  @keyframes w-eyeR {
+    0%, 18%, 48%, 86%, 92%, 100% { transform: scaleY(1); opacity: 1; }
+    22%, 44% { transform: scaleY(0.06); opacity: 0; }
+    89% { transform: scaleY(0.08); opacity: 1; }
+  }
+  @keyframes w-eyeL {
+    0%, 86%, 92%, 100% { transform: scaleY(1); }
+    89% { transform: scaleY(0.08); }
+  }
+  @keyframes w-winkArc {
+    0%, 19%, 47%, 100% { opacity: 0; }
+    23%, 43% { opacity: 1; }
+  }
+  @keyframes w-mouth {
+    0%, 19%, 48%, 100% { opacity: 1; }
+    23%, 44% { opacity: 0; }
+  }
+  @keyframes w-mouthBig {
+    0%, 19%, 48%, 100% { opacity: 0; }
+    23%, 44% { opacity: 1; }
+  }
+  @keyframes w-cheeks {
+    0%, 18%, 50%, 100% { transform: scale(1); opacity: 0.85; }
+    24%, 44% { transform: scale(1.25); opacity: 1; }
+  }
+  @keyframes w-earL {
+    0%, 26%, 42%, 100% { transform: rotate(0); }
+    29% { transform: rotate(-16deg); } 32% { transform: rotate(10deg); }
+    35% { transform: rotate(-12deg); } 38% { transform: rotate(6deg); }
+  }
+  @keyframes w-earR {
+    0%, 26%, 42%, 100% { transform: rotate(0); }
+    29% { transform: rotate(16deg); } 32% { transform: rotate(-10deg); }
+    35% { transform: rotate(12deg); } 38% { transform: rotate(-6deg); }
+  }
+  @keyframes w-badge {
+    0%, 60%, 82%, 100% { transform: scale(1) rotate(0); }
+    66% { transform: scale(1.28) rotate(-12deg); }
+    72% { transform: scale(0.92) rotate(6deg); }
+    77% { transform: scale(1.06) rotate(0); }
+  }
+  @keyframes w-hearts {
+    0%, 20% { opacity: 0; transform: translateY(10px); }
+    26%     { opacity: 1; transform: translateY(0); }
+    46%     { opacity: 0.9; transform: translateY(-26px); }
+    54%, 100% { opacity: 0; transform: translateY(-40px); }
+  }
+  @keyframes w-sparkles {
+    0%, 62% { opacity: 0; transform: scale(0.2) rotate(0); }
+    68%     { opacity: 1; transform: scale(1.1) rotate(20deg); }
+    80%     { opacity: 1; transform: scale(1) rotate(35deg); }
+    88%, 100% { opacity: 0; transform: scale(0.6) rotate(45deg); }
+  }
+  @keyframes dots-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+
+  /* ---------------- 2) LOADING BOUNCE (1.2s loop) ---------------- */
+  .bounce #char   { transform-origin: 50% 100%; animation: b-char 1.2s infinite; }
+  .bounce #shadow { transform-origin: 50% 50%;  animation: b-shadow 1.2s infinite; }
+  .bounce #dots   { animation: dots-float 1.2s ease-in-out infinite; }
+  .bounce #eyeL, .bounce #eyeR { transform-origin: 50% 50%; animation: b-blink 3.6s infinite; }
+  .bounce #winkR, .bounce #mouthBig, .bounce #hearts, .bounce #sparkles { opacity: 0; }
+
+  @keyframes b-char {
+    0%   { transform: translateY(0) scale(1.04, 0.96); animation-timing-function: ease-out; }
+    12%  { transform: translateY(-2px) scale(0.99, 1.01); animation-timing-function: ease-out; }
+    50%  { transform: translateY(-16px) scale(1, 1); animation-timing-function: ease-in; }
+    88%  { transform: translateY(0) scale(1, 1); animation-timing-function: ease-out; }
+    100% { transform: translateY(0) scale(1.04, 0.96); }
+  }
+  @keyframes b-shadow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(0.78); opacity: 0.6; }
+  }
+  /* an occasional blink so the loader feels alive (once every 3 bounces) */
+  @keyframes b-blink {
+    0%, 30%, 36%, 100% { transform: scaleY(1); }
+    33% { transform: scaleY(0.08); }
+  }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }]]></style>
+  <defs>
+    <radialGradient id="body" cx="36%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#8EC5FF"/><stop offset="38%" stop-color="#4F93F7"/>
+      <stop offset="78%" stop-color="#2563EB"/><stop offset="100%" stop-color="#1D4ED8"/>
+    </radialGradient>
+    <linearGradient id="depth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E40AF"/><stop offset="100%" stop-color="#172E7A"/>
+    </linearGradient>
+    <radialGradient id="ear" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#7DB6FF"/><stop offset="60%" stop-color="#2F6FEA"/><stop offset="100%" stop-color="#1E40AF"/>
+    </radialGradient>
+    <radialGradient id="face" cx="45%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="55%" stop-color="#EAF3FF"/><stop offset="100%" stop-color="#C3DBFD"/>
+    </radialGradient>
+    <linearGradient id="faceRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E40AF" stop-opacity="0.55"/><stop offset="100%" stop-color="#93C5FD" stop-opacity="0.25"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#3B5BB5"/><stop offset="60%" stop-color="#1E2F6E"/><stop offset="100%" stop-color="#0F1C47"/>
+    </radialGradient>
+    <radialGradient id="badge" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#7AB4FF"/><stop offset="45%" stop-color="#2F6FEA"/><stop offset="100%" stop-color="#1E3A8A"/>
+    </radialGradient>
+    <linearGradient id="badgeRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="100%" stop-color="#D6E6FF"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/><stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="cheek" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7FB3FB" stop-opacity="0.9"/><stop offset="100%" stop-color="#7FB3FB" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1E3A8A" stop-opacity="0.28"/><stop offset="100%" stop-color="#1E3A8A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0F1C47" flood-opacity="0.35"/>
+    </filter>
+    <ellipse id="bubble" cx="116" cy="118" rx="88" ry="80"/>
+    <path id="heart" d="M0 -3 C-3 -9 -12 -8 -12 -1 C-12 5 -4 9 0 13 C4 9 12 5 12 -1 C12 -8 3 -9 0 -3 Z"/>
+    <path id="star" d="M0 -10 L3 -3 L10 0 L3 3 L0 10 L-3 3 L-10 0 L-3 -3 Z"/>
+  </defs>
+
+  <ellipse id="shadow" cx="118" cy="224" rx="78" ry="9" fill="url(#floor)"/>
+
+  <g id="char">
+    <g id="earL"><circle cx="70" cy="60" r="17" fill="url(#depth)"/><circle cx="70" cy="56" r="17" fill="url(#ear)"/><ellipse cx="65" cy="50" rx="6" ry="4" fill="#FFFFFF" opacity="0.55"/></g>
+    <g id="earR"><circle cx="162" cy="60" r="17" fill="url(#depth)"/><circle cx="162" cy="56" r="17" fill="url(#ear)"/><ellipse cx="157" cy="50" rx="6" ry="4" fill="#FFFFFF" opacity="0.55"/></g>
+
+    <use href="#bubble" fill="url(#depth)" transform="translate(0 9)"/>
+    <use href="#bubble" fill="url(#body)"/>
+    <path d="M44 162 C62 186 88 196 116 196 C146 196 172 186 190 160" fill="none" stroke="#9CC8FF" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
+    <path d="M58 96 C62 70 86 52 116 50 C96 58 80 72 74 96 Z" fill="url(#shine)"/>
+    <ellipse cx="66" cy="76" rx="7" ry="4.5" transform="rotate(-40 66 76)" fill="#FFFFFF" opacity="0.8"/>
+
+    <ellipse cx="116" cy="119" rx="68" ry="56" fill="url(#faceRim)"/>
+    <ellipse cx="116" cy="121" rx="65" ry="53" fill="url(#face)"/>
+
+    <g id="eyeL">
+      <ellipse cx="96" cy="114" rx="12.5" ry="15.5" fill="url(#eye)"/>
+      <circle cx="100.5" cy="107" r="5" fill="#FFFFFF"/><circle cx="92.5" cy="120" r="2.2" fill="#FFFFFF" opacity="0.9"/>
+      <path d="M88 124 Q96 130 104 124" fill="none" stroke="#5B7FD6" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    </g>
+    <g id="eyeR">
+      <ellipse cx="136" cy="114" rx="12.5" ry="15.5" fill="url(#eye)"/>
+      <circle cx="140.5" cy="107" r="5" fill="#FFFFFF"/><circle cx="132.5" cy="120" r="2.2" fill="#FFFFFF" opacity="0.9"/>
+      <path d="M128 124 Q136 130 144 124" fill="none" stroke="#5B7FD6" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    </g>
+    <!-- closed, happy eye for the wink: an upside-down U -->
+    <path id="winkR" d="M124 116 Q136 102 148 116" fill="none" stroke="#1E2F6E" stroke-width="5" stroke-linecap="round" opacity="0"/>
+
+    <path id="mouth" d="M103 140 Q116 153 129 140" fill="none" stroke="#1E2F6E" stroke-width="4.5" stroke-linecap="round"/>
+    <!-- bigger, open smile while winking -->
+    <g id="mouthBig" opacity="0">
+      <path d="M100 138 Q116 160 132 138 Z" fill="#1E2F6E" stroke="#1E2F6E" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M108 148 Q116 154 124 148 Q116 152 108 148 Z" fill="#7FB3FB"/>
+    </g>
+
+    <g id="cheeks">
+      <ellipse cx="77" cy="137" rx="13" ry="8" fill="url(#cheek)"/>
+      <ellipse cx="155" cy="137" rx="13" ry="8" fill="url(#cheek)"/>
+    </g>
+
+    <g id="badge">
+      <g filter="url(#drop)">
+        <circle cx="188" cy="176" r="29" fill="url(#badgeRim)"/>
+        <circle cx="188" cy="176" r="23" fill="url(#badge)"/>
+      </g>
+      <ellipse cx="180" cy="165" rx="9" ry="5" transform="rotate(-30 180 165)" fill="#FFFFFF" opacity="0.55"/>
+      <path d="M177 177 l8 8 l15 -17" fill="none" stroke="#173a9a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" transform="translate(0 2)"/>
+      <path d="M177 177 l8 8 l15 -17" fill="none" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <g id="dots">
+      <circle cx="34" cy="68" r="6" fill="url(#ear)"/><circle cx="32" cy="66" r="2" fill="#FFFFFF" opacity="0.7"/>
+      <circle cx="21" cy="86" r="4" fill="url(#ear)"/><circle cx="20" cy="85" r="1.3" fill="#FFFFFF" opacity="0.7"/>
+    </g>
+  </g>
+
+  <!-- little hearts that float up during the wink -->
+  <g id="hearts" opacity="0">
+    <use href="#heart" transform="translate(206 70) scale(0.9)" fill="#60A5FA"/>
+    <use href="#heart" transform="translate(222 44) scale(0.6)" fill="#93C5FD"/>
+    <use href="#heart" transform="translate(196 34) scale(0.45)" fill="#3B82F6"/>
+  </g>
+  <!-- sparkles around the badge when it pops -->
+  <g id="sparkles" opacity="0">
+    <use href="#star" transform="translate(226 150)" fill="#60A5FA"/>
+    <use href="#star" transform="translate(214 214) scale(0.7)" fill="#93C5FD"/>
+    <use href="#star" transform="translate(156 218) scale(0.6)" fill="#3B82F6"/>
+    <use href="#star" transform="translate(232 190) scale(0.5)" fill="#BFDBFE"/>
+  </g>
+</svg>

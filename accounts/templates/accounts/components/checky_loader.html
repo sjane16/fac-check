@@ -1,0 +1,161 @@
+{% load static %}
+<style>
+    html.checky-loading body > :not(#checky-loader),
+    html.checky-loading body > :not(#checky-loader) * {
+        animation-play-state: paused !important;
+    }
+    #checky-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: clamp(24px, 6vw, 96px);
+        text-align: center;
+        background: linear-gradient(to bottom, rgba(37, 99, 235, 0.06), rgba(37, 99, 235, 0.06) 75%, transparent), #ffffff;
+        color: #18366b;
+        transition: opacity 450ms ease;
+    }
+    #checky-loader[hidden] { display: none; }
+    #checky-loader img {
+        width: clamp(200px, 24vw, 300px);
+        flex-shrink: 0;
+        height: auto;
+        aspect-ratio: 1;
+        object-fit: contain;
+        margin-bottom: 0;
+    }
+    #checky-loader .checky-welcome {
+        margin: 0 0 12px;
+        color: #526583;
+        font: 500 14px/1.5 "Poppins", sans-serif;
+    }
+    #checky-loader .checky-title {
+        margin: 0;
+        color: #18366b;
+        font: 400 15px/1.5 "Poppins", sans-serif;
+        letter-spacing: normal;
+    }
+    #checky-loader .checky-title span {
+        display: block;
+        margin-top: -0.12em;
+        color: #2563eb;
+        font-family: "Dancing Script", cursive;
+        font-size: 1.2em;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    #checky-loader [role="status"] { animation: checky-welcome-in 650ms ease-out both; }
+    @media (max-width: 700px) {
+        #checky-loader {
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+            padding: 24px;
+        }
+        #checky-loader img { width: min(56vw, 220px); }
+        #checky-loader .checky-welcome { margin-bottom: 12px; }
+        #checky-loader .checky-title { font-size: 14px; }
+        #checky-loader .checky-title span { margin-top: -0.12em; }
+    }
+    @keyframes checky-welcome-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    html.dark #checky-loader {
+        background: linear-gradient(to bottom, rgba(125, 180, 255, 0.06), transparent), #18191a;
+    }
+    html.dark #checky-loader .checky-welcome { color: #b0b3b8; }
+    html.dark #checky-loader .checky-title { color: #e4e6eb; }
+    html.dark #checky-loader .checky-title span { color: #7db4ff; }
+    #checky-loader.is-leaving { opacity: 0; pointer-events: none; }
+    @media (prefers-reduced-motion: reduce) {
+        #checky-loader { transition: none; }
+        #checky-loader [role="status"] { animation: none; }
+    }
+</style>
+<div id="checky-loader" hidden>
+    <img data-src="{% static 'accounts/images/checky-loader.svg' %}" width="180" height="180" alt="" />
+    <div role="status">
+        <p class="checky-title">Our campus, cared for.</p>
+    </div>
+</div>
+<script>
+    (function () {
+        const loader = document.getElementById('checky-loader');
+        const mascot = loader.querySelector('img');
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const preview = new URLSearchParams(window.location.search).get('preview-loader') === '1';
+        // Welcome once per tab session; returning home should be immediate.
+        if (!preview) {
+            let skipWelcome = false;
+            try {
+                skipWelcome = sessionStorage.getItem('fc-checky-welcomed') === '1';
+                sessionStorage.setItem('fc-checky-welcomed', '1');
+            } catch (error) {
+                // If storage is blocked, avoid replaying on internal navigation.
+                const navigation = performance.getEntriesByType('navigation')[0];
+                skipWelcome = Boolean(navigation && navigation.type !== 'navigate');
+                if (document.referrer) {
+                    try {
+                        skipWelcome = skipWelcome || new URL(document.referrer).origin === window.location.origin;
+                    } catch (ignored) {}
+                }
+            }
+            if (skipWelcome) {
+                loader.remove();
+                return;
+            }
+        }
+        let dismissed = false;
+        let revealTimer;
+        let animationStarted = null;
+        let pageReady = document.readyState === 'complete';
+        const previousOverflow = document.body.style.overflow;
+        function dismiss() {
+            if (dismissed) return;
+            dismissed = true;
+            clearTimeout(revealTimer);
+            clearTimeout(safetyTimer);
+            document.body.style.overflow = previousOverflow;
+            loader.classList.add('is-leaving');
+            window.setTimeout(function () {
+                loader.remove();
+                document.documentElement.classList.remove('checky-loading');
+            }, reducedMotion ? 0 : 450);
+        }
+        const safetyTimer = window.setTimeout(dismiss, 30000);
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') dismiss();
+        });
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) dismiss();
+        });
+        mascot.addEventListener('error', dismiss, { once: true });
+        mascot.addEventListener('load', function () {
+            animationStarted = performance.now();
+            scheduleReveal();
+        }, { once: true });
+        document.documentElement.classList.add('checky-loading');
+        loader.hidden = false;
+        document.body.style.overflow = 'hidden';
+        mascot.src = mascot.dataset.src;
+        function scheduleReveal() {
+            if (dismissed || !pageReady) return;
+            // Dismiss as soon as the page is ready; keep only a brief minimum so the loader doesn't flash.
+            const minVisible = preview ? 12000 : (reducedMotion ? 0 : 600);
+            const delay = Math.max(0, minVisible - performance.now());
+            clearTimeout(revealTimer);
+            revealTimer = window.setTimeout(dismiss, delay);
+        }
+        function ready() {
+            pageReady = true;
+            scheduleReveal();
+        }
+        if (document.readyState === 'complete') ready();
+        else window.addEventListener('load', ready, { once: true });
+    })();
+</script>

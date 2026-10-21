@@ -1,0 +1,254 @@
+{% load static %}
+<style>
+    #chatbot-toggle {
+        width: auto;
+        height: 64px;
+        padding: 4px 6px 4px 18px;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--color-gray-200, #e5e7eb);
+        background: var(--fc-surface, #ffffff);
+        color: var(--color-gray-900, #111827);
+        box-shadow: 0 4px 16px rgb(15 23 42 / 0.10);
+        font: 500 13px/1.4 "Poppins", sans-serif;
+        white-space: nowrap;
+        transition: padding 220ms ease, gap 220ms ease;
+        touch-action: none;
+        user-select: none;
+        cursor: grab;
+    }
+    #chatbot-toggle:active { cursor: grabbing; }
+    #chatbot-toggle > span {
+        max-width: 110px;
+        overflow: hidden;
+        opacity: 1;
+        transition: max-width 220ms ease, opacity 150ms ease;
+    }
+    #chatbot-toggle.is-compact { padding: 4px; gap: 0; background: var(--fc-surface, #ffffff); justify-content: center; }
+    #chatbot-toggle.is-compact img { transform: translate(1px, -2px); }
+    #chatbot-toggle.is-compact > span { max-width: 0; opacity: 0; }
+    @media (prefers-reduced-motion: reduce) {
+        #chatbot-toggle, #chatbot-toggle > span { transition: none; }
+    }
+    #chatbot-toggle:hover { border-color: #7db4ff; }
+    #chatbot-toggle:focus-visible {
+        outline: 2px solid #7db4ff;
+        outline-offset: 4px;
+    }
+    #chatbot-toggle img { width: 54px; height: 54px; object-fit: contain; flex-shrink: 0; }
+</style>
+<button id="chatbot-toggle"
+        type="button"
+        aria-label="Open chat with Checky"
+        aria-controls="chat-window"
+        class="flex fixed right-6 rounded-full bottom-23 lg:bottom-6 z-40">
+    <span>Chat with us</span>
+    <img src="{% static 'accounts/images/checky-bubble-3d.svg' %}"
+         width="64" height="64" alt="" />
+</button>
+<div id="chat-window"
+     class="hidden fixed right-4 left-4 lg:left-auto lg:right-6 w-auto lg:w-96 top-6 lg:top-auto bottom-44 lg:bottom-24 lg:h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-fade-in z-40">
+    <div class="fc-chat-header bg-blue-600 p-4 text-white flex justify-between items-center shadow-md">
+        <div class="flex items-center gap-2">
+            <img src="{% static 'accounts/images/checky-bubble-3d.svg' %}"
+                 width="32" height="32" alt=""
+                 style="width:32px;height:32px;flex-shrink:0;background:#fff;border-radius:50%;" />
+            <div>
+                <h2 class="font-semibold tracking-wide text-sm">Checky</h2>
+                <p class="text-xs">Fac-Check AI assistant</p>
+            </div>
+        </div>
+        <button id="chat-btn-close"
+                class="text-white hover:opacity-70 text-lg font-bold focus:outline-none">&times;</button>
+    </div>
+    <div id="chat-box"
+         class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 flex flex-col">
+        <div class="bg-blue-100 text-blue-900 text-xs p-3 rounded-xl max-w-[85%] self-start rounded-tl-none shadow-sm">
+            Hi! I'm Checky, your AI assistant for Fac-Check. How can I help you today?
+        </div>
+        <div id="quick-replies" class="flex flex-col gap-1.5 pt-2">
+            <button data-answer="how_to_report"
+                    class="quick-rep-btn text-left bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded-lg text-[11px] py-2 px-3 shadow-sm font-medium transition-colors">
+                ❓ How to report facility-concerns?
+            </button>
+            <button data-answer="turnaround_time"
+                    class="quick-rep-btn text-left bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded-lg text-[11px] py-2 px-3 shadow-sm font-medium transition-colors">
+                ⏳ How long will it take for a report to be processed?
+            </button>
+            <button data-answer="general_user"
+                    class="quick-rep-btn text-left bg-white border border-blue-200 hover:bg-blue-50 text-blue-700 rounded-lg text-[11px] py-2 px-3 shadow-sm font-medium transition-colors">
+                👤 Who can submit reports?
+            </button>
+        </div>
+    </div>
+    <form id="chat-form" class="p-3 border-t border-gray-200 flex items-center gap-2">
+        {% csrf_token %}
+        <input type="text"
+               id="chat-input"
+               maxlength="500"
+               class="flex-1 text-xs border border-gray-300 text-gray-900 dark:bg-gray-50 rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 placeholder-gray-400"
+               placeholder="Type your question here...">
+        <button type="submit"
+                class="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition-colors focus:outline-none shadow-sm flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke-width="1.5"
+                 stroke="currentColor"
+                 class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+            </svg>
+        </button>
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatbotToggle = document.getElementById("chatbot-toggle");
+        const chatWindow = document.getElementById("chat-window");
+        const chatClose = document.getElementById("chat-btn-close");
+        const chatBox = document.getElementById("chat-box");
+        const chatForm = document.getElementById("chat-form");
+        const chatInput = document.getElementById("chat-input");
+        const quickReply = document.getElementById("quick-replies");
+        const mobileBottomNav = document.getElementById("mobile-bottom-nav");
+
+        // Collapse the label on any downward page scroll, including restored positions.
+        function updateChatbotLabel() {
+            chatbotToggle.classList.toggle('is-compact', window.scrollY > 0);
+        }
+        window.addEventListener('scroll', updateChatbotLabel, { passive: true });
+        window.addEventListener('pageshow', updateChatbotLabel);
+        updateChatbotLabel();
+
+        let drag = null;
+        let wasDragged = false;
+        function clampToggleBottom(bottom) {
+            const navVisible = mobileBottomNav && getComputedStyle(mobileBottomNav).display !== "none";
+            const navClearance = navVisible
+                ? window.innerHeight - mobileBottomNav.getBoundingClientRect().top + 12
+                : 12;
+            const minBottom = Math.min(navClearance, window.innerHeight - chatbotToggle.offsetHeight - 12);
+            const maxBottom = Math.max(minBottom, window.innerHeight - chatbotToggle.offsetHeight - 12);
+            return Math.max(minBottom, Math.min(bottom, maxBottom));
+        }
+
+        chatbotToggle.addEventListener("pointerdown", function(event) {
+            if (event.button !== undefined && event.button !== 0) return;
+            const rect = chatbotToggle.getBoundingClientRect();
+            drag = {
+                pointerId: event.pointerId,
+                startY: event.clientY,
+                startBottom: window.innerHeight - rect.bottom,
+                moved: false,
+            };
+            chatbotToggle.setPointerCapture(event.pointerId);
+        });
+        chatbotToggle.addEventListener("pointermove", function(event) {
+            if (!drag || event.pointerId !== drag.pointerId) return;
+            const deltaY = drag.startY - event.clientY;
+            if (Math.abs(deltaY) < 4 && !drag.moved) return;
+            drag.moved = true;
+            wasDragged = true;
+            chatbotToggle.style.bottom = `${clampToggleBottom(drag.startBottom + deltaY)}px`;
+        });
+        function endToggleDrag(event) {
+            if (!drag || (event.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
+            const moved = drag.moved;
+            drag = null;
+            if (event.type === "pointercancel") wasDragged = false;
+            else if (moved) setTimeout(() => { wasDragged = false; }, 0);
+        }
+        chatbotToggle.addEventListener("pointerup", endToggleDrag);
+        chatbotToggle.addEventListener("pointercancel", endToggleDrag);
+
+        const localQues = {
+            "how_to_report": "Go to the report submission page, upload a clear photo of the defect, and let Fac-Check suggest a category. Select the location, describe the concern, then submit the report.",
+            "turnaround_time": "The assessment and verification of concerns typically take 2-3 working days on the part of the Maintenance and Engineering Division.",
+            "general_user": "All official UDM stakeholders, including active students, professors, and university administrative staff can log in and submit facility reports."
+        };
+
+        chatbotToggle.addEventListener("click", () => {
+            if (wasDragged) {
+                wasDragged = false;
+                return;
+            }
+            chatWindow.classList.toggle("hidden");
+        });
+        chatClose.addEventListener("click", () => chatWindow.classList.add("hidden"));
+
+        function appendMessage(text, isUser) {
+            const message = document.createElement("div");
+            message.className = isUser ?
+                "bg-blue-600 text-white text-xs p-3 rounded-xl max-w-[85%] self-end rounded-tr-none shadow-sm transition-all" :
+                "bg-blue-100 text-blue-900 text-xs p-3 rounded-xl max-w-[85%] self-start rounded-tl-none shadow-sm transition-all";
+
+            message.textContent = text;
+
+            chatBox.insertBefore(message, quickReply);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        document.querySelectorAll(".quick-rep-btn").forEach(button => {
+            button.addEventListener("click", function(e) {
+                const currentBtn = e.currentTarget;
+                const key = currentBtn.getAttribute("data-answer");
+                const questionText = currentBtn.textContent.trim();
+                appendMessage(questionText, true);
+
+                const quickloader = document.createElement("div");
+                quickloader.id = "typing-loader";
+                quickloader.className = "bg-gray-200 text-gray-500 text-[10px] p-2 rounded-xl self-start rounded-tl-none shadow-sm italic animate-pulse";
+                quickloader.textContent = "Checky is thinking...";
+                chatBox.insertBefore(quickloader, quickReply);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                setTimeout(() => {
+
+                    const activeLoader = document.getElementById("typing-loader");
+                    if (activeLoader) activeLoader.remove();
+
+                    appendMessage(localQues[key], false);
+                }, 1200);
+            });
+        });
+
+        chatForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const ques = chatInput.value.trim();
+            if (!ques) return;
+
+            appendMessage(ques, true);
+            chatInput.value = "";
+
+            const loader = document.createElement("div");
+            loader.id = "typing-loader";
+            loader.className = "bg-gray-200 text-gray-500 text-[10px] p-2 rounded-xl self-start rounded-tl-none shadow-sm italic animate-pulse";
+            loader.textContent = "Checky is thinking...";
+            chatBox.insertBefore(loader, quickReply);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            fetch("/user/chatbot/response/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: new URLSearchParams({
+                        "message": ques
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const removeLoader = document.getElementById("typing-loader");
+                    if (removeLoader) removeLoader.remove();
+                    appendMessage(data.reply, false)
+                })
+                .catch(error => {
+                    const targetLoader = document.getElementById("typing-loader");
+                    if (targetLoader) targetLoader.remove();
+                    appendMessage("Sorry, there was an error connecting to the network gateway.", false)
+                });
+        });
+    });
+</script>
