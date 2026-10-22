@@ -23,6 +23,10 @@ services:
         value: "True"
       - key: WEB_CONCURRENCY
         value: "1"
+      # Stops each gunicorn thread from keeping its own pool of freed memory, which
+      # otherwise pushes the 512 MB instance over its limit over time
+      - key: MALLOC_ARENA_MAX
+        value: "2"
       # Only needed for a custom domain, e.g. faccheck.udm.edu.ph (the .onrender.com address is added automatically)
       - key: ALLOWED_HOSTS
         sync: false

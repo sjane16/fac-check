@@ -49,8 +49,22 @@ def _load_model():
         with _MODEL_LOCK:
             if MODEL is None:
                 import tensorflow as tf
+                # One photo at a time (see _INFERENCE_LOCK), so TensorFlow's own thread pools
+                # only add memory on Render's 512 MB instance. Must be set before the first op.
+                try:
+                    tf.config.threading.set_intra_op_parallelism_threads(1)
+                    tf.config.threading.set_inter_op_parallelism_threads(1)
+                except RuntimeError:
+                    pass  # TensorFlow already started (e.g. in tests); keep its defaults
                 MODEL = tf.keras.models.load_model(MODEL_PATH, compile=False)
     return MODEL
+
+
+def _run_model(model, image_array):
+    # predict_on_batch instead of predict(): predict() builds a new data pipeline on every
+    # call, and its memory piles up over many uploads (measured: peak 520 MB vs 370 MB).
+    import numpy as np
+    return np.asarray(model.predict_on_batch(image_array))
 
 
 def _warm_model():
@@ -62,7 +76,7 @@ def _warm_model():
         image_shape = tuple(CONFIG["image_size"]) + (3,)
         sample = np.zeros((1, *image_shape), dtype=np.float32)
         with _INFERENCE_LOCK:
-            model.predict(sample, verbose=0)
+            _run_model(model, sample)
     except Exception:
         logger.exception("CNN model background warm-up failed")
     finally:
@@ -86,10 +100,14 @@ def predict_image(image_file):
     import numpy as np
     from PIL import Image, ImageOps
 
+    image_size = tuple(CONFIG["image_size"])
     image_file.seek(0)
     try:
         with Image.open(image_file) as source:
-            image = ImageOps.exif_transpose(source).convert("RGB").resize(tuple(CONFIG["image_size"]))
+            # For JPEGs, decode big phone photos at a reduced scale (still at least twice the
+            # model size) instead of holding every pixel in memory. No-op for other formats.
+            source.draft("RGB", (image_size[0] * 2, image_size[1] * 2))
+            image = ImageOps.exif_transpose(source).convert("RGB").resize(image_size)
     except (Image.DecompressionBombError, OSError, SyntaxError, ValueError) as exc:  # OSError covers UnidentifiedImageError
         raise ImageDecodeError("Uploaded photo could not be decoded.") from exc
     finally:
@@ -102,7 +120,7 @@ def predict_image(image_file):
 
     model = _load_model()
     with _INFERENCE_LOCK:
-        predictions = model.predict(image_array, verbose=0)[0]
+        predictions = _run_model(model, image_array)[0]
 
     sorted_indices = np.argsort(predictions)[::-1]
 
