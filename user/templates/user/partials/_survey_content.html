@@ -20,16 +20,17 @@
                 <!-- Details -->
                 <div class="mb-4">
                     <p class="text-xs font-semibold uppercase text-gray-400 mb-2">Details</p>
-                    <div class="space-y-1 mb-3">
-                        <div class="flex items-center justify-between">
-                            <p class="text-sm text-gray-600"><span class="text-gray-400">Job Order No:</span> {{ survey.report.job_order_id }}</p>
+                    <div class="mb-3">
+                        <div class="flex flex-col items-start gap-1 sm:flex-row sm:justify-between sm:gap-4">
+                            <div class="min-w-0 space-y-1">
+                                <p class="text-sm text-gray-600"><span class="text-gray-400">Job Order No:</span> {{ survey.report.job_order_id }}</p>
+                                <p class="text-sm text-gray-600"><span class="text-gray-400">Category:</span> {{ survey.report.get_category_display }}</p>
+                            </div>
                             {% if survey.scan_file %}
-                                <a href="{{ survey.scan_file.url }}" target="_blank" rel="noopener" class="inline-block text-sm font-semibold text-blue-600 hover:underline">View scanned Job Order</a>
+                                <a href="{{ survey.scan_file.url }}" target="_blank" rel="noopener" class="inline-block shrink-0 text-sm font-semibold text-blue-600 hover:underline">View scanned Job Order</a>
                             {% endif %}
                         </div>
-                        <p class="text-sm text-gray-600"><span class="text-gray-400">Category:</span> {{ survey.report.get_category_display }}</p>
-                        <p class="text-sm text-gray-600"><span class="text-gray-400">Rating source:</span> {{ survey.get_rating_source_display }}</p>
-                        {% if survey.rated_by %}<p class="text-sm text-gray-600"><span class="text-gray-400">Rated by:</span> {{ survey.rated_by.get_full_name|default:survey.rated_by.username }}</p>{% endif %}
+                        {% if survey.rated_by %}<p class="mt-1 text-sm text-gray-600"><span class="text-gray-400">Rated by:</span> {{ survey.rated_by.get_full_name|default:survey.rated_by.username }}</p>{% endif %}
                     </div>
                     <div class="grid grid-cols-3 gap-2 mb-3">
                         <div class="rounded-xl bg-gray-50 px-3 py-2 text-center"><p class="text-[10px] uppercase text-gray-400">Quality</p><p class="text-sm font-semibold text-gray-700">{{ survey.quality|default:"-" }}</p></div>

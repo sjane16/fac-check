@@ -139,15 +139,17 @@
             animationStarted = performance.now();
             scheduleReveal();
         }, { once: true });
+        const loaderShownAt = performance.now();
         document.documentElement.classList.add('checky-loading');
         loader.hidden = false;
         document.body.style.overflow = 'hidden';
         mascot.src = mascot.dataset.src;
+        const MIN_VISIBLE_MS = 3000;
         function scheduleReveal() {
             if (dismissed || !pageReady) return;
-            // Dismiss as soon as the page is ready; keep only a brief minimum so the loader doesn't flash.
-            const minVisible = preview ? 12000 : (reducedMotion ? 0 : 600);
-            const delay = Math.max(0, minVisible - performance.now());
+            // Stay up for at least MIN_VISIBLE_MS, counted from when the loader appeared.
+            const minVisible = preview ? 12000 : (reducedMotion ? 0 : MIN_VISIBLE_MS);
+            const delay = Math.max(0, minVisible - (performance.now() - loaderShownAt));
             clearTimeout(revealTimer);
             revealTimer = window.setTimeout(dismiss, delay);
         }
