@@ -304,10 +304,18 @@ def _change_admin_access(request, user_id, action, body):
             # New admins sign in again with an email code (admins: 7-day trusted devices)
             invalidate_trusted_devices(target)
             log_event(request, 'user_promoted', user=request.user, target=target.email)
-        _notify(target, "You've been given admin access to Fac-Check",
-                f"{request.user.get_full_name() or request.user.email} gave your Fac-Check account admin access.\n\n"
+            actor_name = request.user.get_full_name() or request.user.email or request.user.username
+            Notification.objects.create(
+                user=target,
+                account_event=Notification.ADMIN_ACCESS_GRANTED,
+                message=f'{actor_name[:100]} granted you Admin access. You can now access the Admin Dashboard.',
+            )
+            transaction.on_commit(lambda: _notify(
+                target, "You've been given admin access to Fac-Check",
+                f"{actor_name} gave your Fac-Check account admin access.\n\n"
                 "Next time you log in you'll see the admin dashboard. If you weren't expecting this, "
-                "please contact the Maintenance and Engineering Division.")
+                "please contact the Maintenance and Engineering Division.",
+            ))
         return JsonResponse({'ok': True, 'message': f"{name} is now an admin."})
 
     # remove_admin
@@ -339,6 +347,15 @@ def _change_admin_access(request, user_id, action, body):
             profile.save(update_fields=['role', 'med_personnel_slug', 'med_personnel_category'])
         invalidate_trusted_devices(target)
         log_event(request, 'user_demoted', user=request.user, target=target.email, new_role=profile.role)
+        actor_name = request.user.get_full_name() or request.user.email or request.user.username
+        Notification.objects.create(
+            user=target,
+            account_event=Notification.ADMIN_ACCESS_REMOVED,
+            message=(
+                f'{actor_name[:100]} removed your Admin access. '
+                f'You can continue using your {profile.get_role_display()} account.'
+            ),
+        )
     _notify(target, 'Your Fac-Check admin access was removed',
             f"Your admin access to Fac-Check was removed. Your account is now a {profile.get_role_display().lower()} account.\n\n"
             "If you think this is a mistake, please contact the Maintenance and Engineering Division.")

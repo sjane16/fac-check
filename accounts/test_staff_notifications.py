@@ -184,6 +184,13 @@ class StaffApprovalNotificationTests(TestCase):
             Notification.objects.create(user=self.head, staff_account=self.staff, message='Duplicate')
         with self.assertRaises(IntegrityError), transaction.atomic():
             Notification.objects.create(user=self.head, message='No target')
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Notification.objects.create(
+                user=self.staff, staff_account=self.staff,
+                account_event=Notification.ADMIN_ACCESS_GRANTED, message='Mixed notification targets',
+            )
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Notification.objects.create(user=self.staff, account_event='unknown', message='Unknown account event')
 
     def test_report_notifications_keep_their_status_and_destination(self):
         report = Report.objects.create(

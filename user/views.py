@@ -833,6 +833,8 @@ def view_notification(request, notification_id):
         notification.is_read = True
         notification.save(update_fields=['is_read'])
 
+    if notification.account_event in (Notification.ADMIN_ACCESS_GRANTED, Notification.ADMIN_ACCESS_REMOVED):
+        return redirect('userDashboard')
     return redirect('reportedIssue', report_id=notification.report.id)
 
 

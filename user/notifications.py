@@ -60,8 +60,10 @@ def serialize_notification(notification, include_completion_photo=False):
         'time_ago': notification.time_ago,
         'report_id': notification.report_id,
         'staff_account_id': notification.staff_account_id,
-        'status': ('staff_approval' if notification.staff_account_id else
-                   notification.status_snapshot or notification.report.status),
+        'status': notification.account_event or (
+            'staff_approval' if notification.staff_account_id else
+            notification.status_snapshot or notification.report.status
+        ),
     }
     if include_completion_photo:
         data['completion_photo_url'] = (

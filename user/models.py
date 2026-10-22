@@ -377,10 +377,20 @@ class SurveyResponse(models.Model):
 
 
 class Notification(models.Model):
+    ADMIN_ACCESS_GRANTED = 'admin_access_granted'
+    ADMIN_ACCESS_REMOVED = 'admin_access_removed'
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     staff_account = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='approval_notifications', null=True, blank=True,
+    )
+    account_event = models.CharField(
+        max_length=20, blank=True, default='',
+        choices=[
+            (ADMIN_ACCESS_GRANTED, 'Admin access granted'),
+            (ADMIN_ACCESS_REMOVED, 'Admin access removed'),
+        ],
     )
     message = models.CharField(max_length=255)
     status_snapshot = models.CharField(max_length=20, choices=Report.STATUS_CHOICES, blank=True)
@@ -393,8 +403,12 @@ class Notification(models.Model):
             models.UniqueConstraint(fields=['user', 'staff_account'], name='unique_staff_approval_notification'),
             models.CheckConstraint(
                 condition=(
-                    models.Q(report__isnull=False, staff_account__isnull=True)
-                    | models.Q(report__isnull=True, staff_account__isnull=False)
+                    models.Q(report__isnull=False, staff_account__isnull=True, account_event='')
+                    | models.Q(report__isnull=True, staff_account__isnull=False, account_event='')
+                    | models.Q(
+                        report__isnull=True, staff_account__isnull=True,
+                        account_event__in=('admin_access_granted', 'admin_access_removed'), status_snapshot='',
+                    )
                 ),
                 name='notification_has_one_target',
             ),
