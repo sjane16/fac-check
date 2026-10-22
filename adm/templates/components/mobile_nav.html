@@ -49,8 +49,8 @@
   <!-- Analytics -->
   {% if is_head_admin %}
   <a
-    href="{% url 'survey_analysis' %}"
-    class="flex flex-col items-center gap-1 flex-1 py-2 text-xs font-medium {% if request.resolver_match.url_name == 'survey_analysis' %}text-blue-500{% else %}text-gray-400 hover:text-blue-500{% endif %}"
+    href="{% url 'rating_analytics' %}"
+    class="flex flex-col items-center gap-1 flex-1 py-2 text-xs font-medium {% if request.resolver_match.url_name == 'rating_analytics' %}text-blue-500{% else %}text-gray-400 hover:text-blue-500{% endif %}"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

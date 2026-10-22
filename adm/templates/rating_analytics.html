@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% block title %}Ratings{% endblock %}
+{% block title %}Rating Analytics{% endblock %}
 {% block content %}
   <main class="flex-1 min-w-0 w-full bg-gray-50">
     <div class="w-full px-6 lg:px-10 xl:px-16 pt-6 pb-24 lg:pb-10">
@@ -8,7 +8,7 @@
         <h1 class="text-lg font-bold text-gray-800">Rating Analytics</h1>
         <p class="text-sm text-gray-500">Personnel performance based on Quality, Quantity, and Timeliness of resolved reports, plus overall satisfaction survey results.</p>
       </div>
-      <div id="surveyAnalysisSkeleton">
+      <div id="ratingAnalyticsSkeleton">
         <!-- OVERVIEW SKELETON -->
         <section class="grid grid-cols-1 lg:grid-cols-[0.75fr_1.75fr] gap-5 mb-6">
           <div class="bg-white border border-gray-200 rounded-3xl shadow-sm px-6 py-5 flex flex-col items-center justify-center text-center min-h-[170px]">
@@ -140,7 +140,7 @@
           </div>
         </section>
       </div>
-      <div id="surveyAnalysisContainer" class="hidden"></div>
+      <div id="ratingAnalyticsContainer" class="hidden"></div>
     </div>
   </main>
   <script>
@@ -192,10 +192,10 @@
       });
 
       document.addEventListener("DOMContentLoaded", function() {
-          const skeleton = document.getElementById("surveyAnalysisSkeleton");
-          const container = document.getElementById("surveyAnalysisContainer");
+          const skeleton = document.getElementById("ratingAnalyticsSkeleton");
+          const container = document.getElementById("ratingAnalyticsContainer");
 
-          const RESPONSES_AJAX_URL = "{% url 'adm_survey_responses_ajax' %}";
+          const RESPONSES_AJAX_URL = "{% url 'adm_rating_responses_ajax' %}";
           let responsesCurrentPage = 1;
 
           const RESPONSES_SKELETON_ROW = `
@@ -236,7 +236,7 @@
                           responsesCurrentPage = data.current_page;
                       })
                       .catch(function(error) {
-                          console.error("Failed to fetch survey responses:", error);
+                  console.error("Failed to fetch rating responses:", error);
                           prevBtn.disabled = !(responsesCurrentPage > 1);
                           nextBtn.disabled = false;
                       });
@@ -254,7 +254,7 @@
               });
           }
 
-          fetch("{% url 'adm_survey_analysis_ajax' %}")
+          fetch("{% url 'adm_rating_analytics_ajax' %}")
               .then(function(response) {
                   return response.json();
               })
@@ -279,7 +279,7 @@
                   }, 250);
               })
               .catch(function(error) {
-                  console.error("Failed to load survey analysis:", error);
+                  console.error("Failed to load rating analytics:", error);
               });
       });
   </script>

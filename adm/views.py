@@ -244,14 +244,14 @@ def _build_survey_response(survey):
     }
 
 
-def build_survey_responses_list(page_number=1):
+def build_rating_responses_list(page_number=1):
     """Return one SQL-paginated page of personnel-assigned survey responses."""
     paginator = Paginator(_survey_responses_queryset(), RESPONSES_PAGE_SIZE)
     page = paginator.get_page(page_number)
     return [_build_survey_response(survey) for survey in page.object_list], page
 
 
-def build_survey_analysis_context(response_page=1, include_responses=True):
+def build_rating_analytics_context(response_page=1, include_responses=True):
     aggregates = {
         "total_surveys": Count('id'),
         "quality_sum": Sum('quality'),
@@ -404,10 +404,10 @@ def build_survey_analysis_context(response_page=1, include_responses=True):
     responses = []
     responses_page = None
     if include_responses:
-        responses, responses_page = build_survey_responses_list(response_page)
+        responses, responses_page = build_rating_responses_list(response_page)
 
     return {
-        "active_page": "survey_analysis",
+        "active_page": "rating_analytics",
         "avg_rating": avg_rating,
         "total_surveys": total_surveys,
         "rating_counts": rating_counts,
@@ -749,7 +749,7 @@ def adm_dashboard_ajax(request):
 
     return JsonResponse({
         'html': html,
-        'can_generate_report': is_head_admin(request.user) and (settings.DEBUG or _is_last_day_of_month(today) or bool(report_month)),
+        'can_generate_report': is_head_admin(request.user),
         'report_available_on': last_day.strftime('%b %d, %Y'),
         **data,
     })
@@ -952,6 +952,12 @@ def export_job_order_pdf_admin(request, report_id):
         id=report_id,
     )
 
+    if report.status not in ('in_progress', 'resolved', 'closed'):
+        return HttpResponse(
+            "Job order printing is available once maintenance is in progress.",
+            status=403,
+        )
+
     category_checks = {
         'vehicle_checkup': report.category == 'vehicle_checkup',
         'electrical': report.category == 'electrical',
@@ -988,7 +994,7 @@ def export_job_order_pdf_admin(request, report_id):
 
 
 def export_personnel_performance_pdf(request):
-    context = build_survey_analysis_context(include_responses=False)
+    context = build_rating_analytics_context(include_responses=False)
     context.pop("responses", None)
 
     html = render_to_string('personnel_performance_pdf.html', context)
@@ -1688,26 +1694,26 @@ def adm_menu_ajax(request):
 
     return JsonResponse({"html": html})
 
-def survey_analysis(request):
-    return render(request, 'survey_analysis.html', {
-        "active_page": "survey_analysis",
+def rating_analytics(request):
+    return render(request, 'rating_analytics.html', {
+        "active_page": "rating_analytics",
     })
 
 
-def adm_survey_analysis_ajax(request):
-    context = build_survey_analysis_context(
+def adm_rating_analytics_ajax(request):
+    context = build_rating_analytics_context(
         response_page=request.GET.get('page', 1)
     )
 
-    html = render_to_string('partials/_survey_analysis_content.html', context)
+    html = render_to_string('partials/_rating_analytics_content.html', context)
 
     return JsonResponse({
         'html': html,
     })
 
 
-def adm_survey_responses_ajax(request):
-    responses, page_obj = build_survey_responses_list(request.GET.get('page', 1))
+def adm_rating_responses_ajax(request):
+    responses, page_obj = build_rating_responses_list(request.GET.get('page', 1))
 
     html = render_to_string('partials/_survey_responses_rows.html', {
         'responses': responses,
@@ -1783,6 +1789,10 @@ def view_notification_admin(request, notification_id):
         notification.is_read = True
         notification.save(update_fields=['is_read'])
 
+    if notification.account_event in (Notification.ADMIN_ACCESS_GRANTED, Notification.ADMIN_ACCESS_REMOVED):
+        if notification.account_event == Notification.ADMIN_ACCESS_REMOVED:
+            return redirect('userDashboard')
+        return redirect('dashboard')
     if notification.staff_account_id:
         still_pending = UserProfile.objects.filter(
             user_id=notification.staff_account_id, user__is_active=True,

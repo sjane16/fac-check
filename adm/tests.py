@@ -3,6 +3,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.core import mail
 from django.db import connection
 from django.test import RequestFactory, TestCase, override_settings
 from django.template.loader import render_to_string
@@ -15,8 +16,8 @@ from user.models import Notification, Report, SurveyResponse, UserProfile
 from user.views import dashboardStatsAjax, get_notifications_page_ajax, userSurveyAjax
 
 from .views import (
-    build_survey_analysis_context,
-    build_survey_responses_list,
+    build_rating_analytics_context,
+    build_rating_responses_list,
     get_notifications_page_ajax_admin,
     _build_dashboard_data,
     _build_resolution_buckets,
@@ -28,7 +29,7 @@ from .user_management import _decorate
 from .personnel import personnel_options
 
 
-class SurveyAnalyticsPaginationTests(TestCase):
+class RatingAnalyticsPaginationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         user = User.objects.create_user(username="survey-pagination-test")
@@ -62,9 +63,9 @@ class SurveyAnalyticsPaginationTests(TestCase):
 
     def test_responses_are_filtered_and_paginated_in_the_database(self):
         with CaptureQueriesContext(connection) as queries:
-            first_page, page = build_survey_responses_list(1)
+            first_page, page = build_rating_responses_list(1)
 
-        second_page, second_page_obj = build_survey_responses_list(2)
+        second_page, second_page_obj = build_rating_responses_list(2)
         self.assertEqual(len(first_page), 25)
         self.assertEqual(len(second_page), 1)
         self.assertEqual(page.paginator.count, 26)
@@ -76,7 +77,7 @@ class SurveyAnalyticsPaginationTests(TestCase):
         # Isolate analytics queries from the separately tested cold roster lookup.
         personnel_options()
         with CaptureQueriesContext(connection) as queries:
-            context = build_survey_analysis_context()
+            context = build_rating_analytics_context()
 
         self.assertEqual(context["total_surveys"], 26)
         self.assertEqual(context["avg_rating"], 4.0)
@@ -315,6 +316,95 @@ class StaffAdminPromotionTests(TestCase):
                 self.assertEqual(self.action(password=password).status_code, 403)
         self.account.refresh_from_db()
         self.assertFalse(self.account.is_staff)
+        self.assertFalse(Notification.objects.filter(user=self.account).exists())
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_successful_promotion_sends_email_and_private_readable_system_notification(self):
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.action()
+        self.assertEqual(response.status_code, 200)
+        alert = Notification.objects.get(user=self.account)
+        self.assertEqual(alert.account_event, Notification.ADMIN_ACCESS_GRANTED)
+        self.assertIsNone(alert.report_id)
+        self.assertIsNone(alert.staff_account_id)
+        self.assertFalse(alert.is_read)
+        self.assertFalse(Notification.objects.exclude(user=self.account).exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.account.email])
+        self.assertIn('admin access', mail.outbox[0].subject.lower())
+        self.assertIn('admin dashboard', mail.outbox[0].body.lower())
+
+        self.assertEqual(self.action().status_code, 409)
+        self.assertEqual(Notification.objects.filter(user=self.account).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(self.client.get(reverse('view_notification_admin', args=[alert.pk])).status_code, 404)
+
+        self.account.refresh_from_db()
+        self.client.force_login(self.account)
+        payload = self.client.get(reverse('get_notifications_ajax_admin'), {'filter': 'unread'}).json()
+        self.assertEqual(payload['unread_count'], 1)
+        self.assertEqual(payload['notifications'][0]['status'], Notification.ADMIN_ACCESS_GRANTED)
+        page = self.client.get(reverse('get_notifications_page_ajax_admin')).json()['html']
+        self.assertIn('Admin access granted', page)
+        self.assertIn(reverse('view_notification_admin', args=[alert.pk]), page)
+        self.assertRedirects(
+            self.client.get(reverse('view_notification_admin', args=[alert.pk])),
+            reverse('dashboard'), fetch_redirect_response=False,
+        )
+        alert.refresh_from_db()
+        self.assertTrue(alert.is_read)
+        unread = self.client.get(reverse('get_notifications_ajax_admin'), {'filter': 'unread'}).json()
+        self.assertEqual(unread['unread_count'], 0)
+        self.assertEqual(unread['notifications'], [])
+
+    def test_promotion_alert_remains_safe_to_open_after_admin_access_is_removed(self):
+        self.assertEqual(self.action().status_code, 200)
+        alert = Notification.objects.get(user=self.account)
+        self.assertEqual(self.action('remove_admin').status_code, 200)
+        self.account.refresh_from_db()
+        self.client.force_login(self.account)
+        payload = self.client.get(reverse('get_notifications_ajax')).json()
+        self.assertEqual(payload['notifications'][0]['status'], Notification.ADMIN_ACCESS_GRANTED)
+        self.assertIsNone(payload['notifications'][0]['completion_photo_url'])
+        self.assertRedirects(
+            self.client.get(reverse('view_notification', args=[alert.pk])),
+            reverse('userDashboard'), fetch_redirect_response=False,
+        )
+        alert.refresh_from_db()
+        self.assertTrue(alert.is_read)
+
+    def test_removal_creates_unread_staff_notification_that_opens_staff_dashboard(self):
+        self.assertEqual(self.action().status_code, 200)
+        with patch('adm.user_management._notify'):
+            response = self.action('remove_admin')
+        self.assertEqual(response.status_code, 200)
+
+        alert = Notification.objects.get(user=self.account, account_event=Notification.ADMIN_ACCESS_REMOVED)
+        self.assertIn('removed your Admin access', alert.message)
+        self.assertIn('Staff account', alert.message)
+        self.assertIsNone(alert.report_id)
+        self.assertIsNone(alert.staff_account_id)
+        self.assertFalse(alert.is_read)
+        with patch('adm.user_management._notify'):
+            self.assertEqual(self.action('remove_admin').status_code, 409)
+        self.assertEqual(Notification.objects.filter(user=self.account, account_event=Notification.ADMIN_ACCESS_REMOVED).count(), 1)
+
+        self.client.force_login(self.account)
+        payload = self.client.get(reverse('get_notifications_ajax'), {'filter': 'unread'}).json()
+        self.assertEqual(payload['unread_count'], 2)
+        self.assertIn(Notification.ADMIN_ACCESS_REMOVED, [item['status'] for item in payload['notifications']])
+        page = self.client.get(reverse('get_notifications_page_ajax')).json()['html']
+        self.assertIn('Admin access removed', page)
+        self.assertIn(reverse('view_notification', args=[alert.pk]), page)
+        self.assertRedirects(
+            self.client.get(reverse('view_notification', args=[alert.pk])),
+            reverse('userDashboard'), fetch_redirect_response=False,
+        )
+        alert.refresh_from_db()
+        self.assertTrue(alert.is_read)
+        payload = self.client.get(reverse('get_notifications_ajax'), {'filter': 'unread'}).json()
+        self.assertEqual(payload['unread_count'], 1)
+        self.assertNotIn(Notification.ADMIN_ACCESS_REMOVED, [item['status'] for item in payload['notifications']])
 
     def test_only_staff_can_be_promoted_even_with_forged_role_payload(self):
         for role in ('student', 'faculty', 'med_personnel'):

@@ -8,7 +8,7 @@ from django.urls import reverse
 from PIL import Image
 
 from .models import Notification, Report, SurveyResponse, UserProfile
-from adm.views import build_survey_analysis_context
+from adm.views import build_rating_analytics_context
 
 
 @override_settings(STORAGES={
@@ -355,7 +355,7 @@ class HeadAdminGroupRatingTests(TestCase):
         self.assertEqual(rating.rating_source, 'head_admin')
         self.assertEqual(rating.rated_by, self.head)
 
-        analysis = build_survey_analysis_context(include_responses=False)
+        analysis = build_rating_analytics_context(include_responses=False)
         self.assertEqual(analysis['total_surveys'], 0)
         performance = {row['name']: row for row in analysis['personnel_rows']}
         for name in ('George L. Castro', 'Percival D. Padilla'):

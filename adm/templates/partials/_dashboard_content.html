@@ -1,4 +1,4 @@
-<div id="dashboardActionsRow" class="mb-6">
+<div id="dashboardActionsRow" class="mb-6{% if not is_head_admin %} dashboard-actions-admin{% endif %}">
     {% if is_head_admin %}
     <button type="button"
             id="generateReportBtn"

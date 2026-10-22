@@ -11,7 +11,7 @@ from django.urls import reverse
 from user.models import Report, SurveyResponse, UserProfile
 from .models import Personnel
 from .personnel import personnel_options
-from .views import build_survey_analysis_context, build_survey_responses_list
+from .views import build_rating_analytics_context, build_rating_responses_list
 
 
 @override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
@@ -80,11 +80,11 @@ class PersonnelManagementTests(TestCase):
                 self.assertEqual(report.assigned_personnel_data, [{'name': 'George L. Castro'}])
                 self.assertEqual(report.status, 'closed')
                 self.assertTrue(SurveyResponse.objects.filter(pk=survey.pk, report=report).exists())
-                rows = build_survey_analysis_context(include_responses=False)['personnel_rows']
+                rows = build_rating_analytics_context(include_responses=False)['personnel_rows']
                 row = next(item for item in rows if item['name'] == 'George Renamed')
                 self.assertEqual(row['complete_task'], 1)
                 self.assertEqual((row['quality'], row['quantity'], row['timeliness']), (5, 4, 3))
-                responses, page = build_survey_responses_list()
+                responses, page = build_rating_responses_list()
                 self.assertEqual(page.paginator.count, 1)
                 self.assertEqual(responses[0]['personnel'], 'George Renamed')
         self.personnel.refresh_from_db()

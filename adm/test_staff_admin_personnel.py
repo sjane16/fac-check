@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from user.models import Report, UserProfile
+from user.models import Report, SurveyResponse, UserProfile
 
 
 @override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
@@ -38,7 +38,7 @@ class StaffAdminAndPersonnelTests(TestCase):
         self.assertEqual(response.status_code, 200)
         for route in ('dashboard', 'reports', 'ProfileMenu'):
             self.assertContains(response, f'href="{reverse(route)}"')
-        for route in ('survey_analysis', 'user_management'):
+        for route in ('rating_analytics', 'user_management'):
             self.assertNotContains(response, f'href="{reverse(route)}"')
         self.assertNotContains(response, 'id="reportDownload"')
         response = self.client.get(reverse('adm_dashboard_ajax'))
@@ -52,29 +52,29 @@ class StaffAdminAndPersonnelTests(TestCase):
 
     def test_staff_admin_cannot_bypass_restrictions_using_direct_urls(self):
         for route, args in (
-            ('exportJobOrderPDFAdmin', [self.report.pk]),
             ('export_dashboard_report_pdf', []),
             ('dashboard_report_summary', []),
             ('export_personnel_performance_pdf', []),
-            ('adm_survey_analysis_ajax', []),
-            ('adm_survey_responses_ajax', []),
+            ('adm_rating_analytics_ajax', []),
+            ('adm_rating_responses_ajax', []),
             ('user_management_ajax', []),
         ):
             with self.subTest(route=route):
                 response = self.client.get(reverse(route, args=args))
                 self.assertEqual(response.status_code, 403)
         self.assertEqual(self.client.post(reverse('export_dashboard_report_pdf')).status_code, 403)
-        for route in ('survey_analysis', 'user_management'):
+        for route in ('rating_analytics', 'user_management'):
             self.assertRedirects(self.client.get(reverse(route)), reverse('dashboard'), fetch_redirect_response=False)
 
     def test_head_keeps_ratings_export_controls_and_pdf_access(self):
         self.client.force_login(self.head)
         page = self.client.get(reverse('dashboard'))
-        self.assertContains(page, f'href="{reverse("survey_analysis")}"')
+        self.assertContains(page, f'href="{reverse("rating_analytics")}"')
         self.assertContains(page, 'id="reportDownload"')
         data = self.client.get(reverse('adm_dashboard_ajax'), {'report_month': '2026-10'}).json()
         self.assertTrue(data['can_generate_report'])
         self.assertIn('id="generateReportBtn"', data['html'])
+        Report.objects.filter(pk=self.report.pk).update(status='in_progress')
         details = self.client.get(reverse('adm_report_detail', args=[self.report.pk]))
         self.assertContains(details, 'onclick="exportJobOrder()"')
         with patch('adm.views.pisa.CreatePDF', return_value=SimpleNamespace(err=0)) as pdf:
@@ -82,6 +82,45 @@ class StaffAdminAndPersonnelTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
         pdf.assert_called_once()
+
+    def test_admin_and_head_can_print_started_job_orders_but_not_pending(self):
+        url = reverse('exportJobOrderPDFAdmin', args=[self.report.pk])
+        for actor in (self.admin, self.head):
+            self.client.force_login(actor)
+            for status in ('pending', 'in_progress', 'resolved', 'closed'):
+                with self.subTest(actor=actor.pk, status=status):
+                    Report.objects.filter(pk=self.report.pk).update(status=status)
+                    details = self.client.get(reverse('adm_report_detail', args=[self.report.pk]))
+                    with patch('adm.views.pisa.CreatePDF', return_value=SimpleNamespace(err=0)) as pdf, \
+                            patch('adm.views.render_to_string', return_value='<p>Job Order</p>'):
+                        response = self.client.get(url)
+                    if status == 'pending':
+                        self.assertNotContains(details, 'onclick="exportJobOrder()"')
+                        self.assertEqual(response.status_code, 403)
+                        pdf.assert_not_called()
+                    else:
+                        self.assertContains(details, 'onclick="exportJobOrder()"')
+                        self.assertEqual(response.status_code, 200)
+                        self.assertEqual(response['Content-Type'], 'application/pdf')
+                        pdf.assert_called_once()
+
+        self.client.force_login(self.reporter)
+        self.assertRedirects(self.client.get(url), reverse('userDashboard'), fetch_redirect_response=False)
+        self.client.logout()
+        self.assertEqual(self.client.get(url).status_code, 302)
+
+    def test_closed_manual_survey_keeps_both_scan_and_job_order_print_actions(self):
+        Report.objects.filter(pk=self.report.pk).update(status='closed', survey_method='manual')
+        SurveyResponse.objects.create(
+            report=self.report, quality=5, quantity=4, timeliness=3,
+            scan_file='survey_scans/signed.png',
+        )
+        for actor in (self.admin, self.head):
+            with self.subTest(actor=actor.pk):
+                self.client.force_login(actor)
+                response = self.client.get(reverse('adm_report_detail', args=[self.report.pk]))
+                self.assertContains(response, 'View Scanned Job Order')
+                self.assertContains(response, 'onclick="exportJobOrder()"')
 
     def test_modal_is_separate_from_overall_form_and_starts_with_add_button(self):
         response = self.client.get(reverse('adm_report_detail', args=[self.report.pk]))
