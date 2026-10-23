@@ -14,10 +14,10 @@ class FakeKerasModel:
     def __init__(self, output):
         self.output = np.asarray([output], dtype=np.float32)
         self.input_array = None
-        self.calls = 0
+        self.predict_calls = 0
 
-    def predict_on_batch(self, image_array):
-        self.calls += 1
+    def predict(self, image_array, verbose=0):
+        self.predict_calls += 1
         self.input_array = np.array(image_array, copy=True)
         return self.output
 
@@ -38,10 +38,9 @@ class KerasInferenceTests(SimpleTestCase):
     def test_model_loads_only_when_requested_and_is_reused(self):
         model = Mock()
         tensorflow = types.SimpleNamespace(
-            config=types.SimpleNamespace(threading=Mock()),
             keras=types.SimpleNamespace(
                 models=types.SimpleNamespace(load_model=Mock(return_value=model))
-            ),
+            )
         )
 
         with patch.dict(sys.modules, {'tensorflow': tensorflow}):
@@ -54,8 +53,6 @@ class KerasInferenceTests(SimpleTestCase):
             predictor.MODEL_PATH,
             compile=False,
         )
-        tensorflow.config.threading.set_intra_op_parallelism_threads.assert_called_once_with(1)
-        tensorflow.config.threading.set_inter_op_parallelism_threads.assert_called_once_with(1)
 
     def test_class_labels_match_config_and_category_map(self):
         self.assertEqual(predictor.CONFIG['class_names'], predictor.CLASS_NAMES)
@@ -127,6 +124,6 @@ class KerasInferenceTests(SimpleTestCase):
         with patch.object(predictor, '_load_model', return_value=model):
             predictor._warm_model()
 
-        self.assertEqual(model.calls, 1)
+        self.assertEqual(model.predict_calls, 1)
         self.assertEqual(model.input_array.shape, (1, 224, 224, 3))
         self.assertFalse(predictor._WARMUP_STARTED)
