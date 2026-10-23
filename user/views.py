@@ -627,7 +627,7 @@ using AI-powered image classification to streamline university maintenance.
 or unrelated to a facility concern. The file size must also be within the allowed system limit.
 5. Can I edit or delete my report after submission?
 - No. Once a report is submitted, it is locked to preserve data integrity and immediately routed to the Maintenance and Engineering Division. If you made
-a critical mistake, please contact the administrator to cancel the report.
+a critical mistake, contact the administrator for guidance. The system does not currently provide a report-cancellation option.
 6. How do I check the status of my report?
 - You can monitor your submitted concerns in real-time through your Dashboard page. Each report will display its current stage in the maintenance workflow.
 7. What do the different report statuses mean?
@@ -635,7 +635,7 @@ a critical mistake, please contact the administrator to cancel the report.
 working on repair. "Resolved" means the defect has been fixed or addressed. "Closed" means the end-user has confirmed the resolution and completed the Client Satisfaction Survey.
 8. What should I do if my account gets locked?
 - For security reasons, our system utilizes security throttling that temporarily locks an account after multiple failed login attempts
-to prevent unauthorized access. Please wait a few minutes before trying again, or contact IT support to reset your credentials.
+to prevent unauthorized access. After 5 failed login attempts, wait 30 minutes before trying again, or contact IT support for help.
 9. Is my personal information safe in the system?
 - Yes. The system employs HTTPS data encryption and secure Role-Based Access Controls to ensure that your personal profile and submitted data are strictly protected
 and only accessible to authorized university personnel.
@@ -648,13 +648,13 @@ If the image does not clearly belong to any defined category, it will be categor
 12. What if the AI classifies my report incorrectly?
 -The system currently does not allow end-users to override the AI classification to preserve data integrity. However, each report is reviewed by the Maintenance and Engineering Division, and if the AI misclassifies your report, it will be corrected during the review process.
 13. What is the Client Satisfaction Survey?
-- The Client Satisfaction Survey is a short feedback form that appears once your report has been marked as Resolved. It asks you to rate the quality and timeliness of the maintenance service you received on a scale of 1 to 5.
+- The Client Satisfaction Survey is a short feedback form that appears once your report has been marked as Resolved. It asks you to rate the quality, quantity, and timeliness of the maintenance service you received on a scale of 1 to 5.
 14. Is the Client Satisfaction Survey required?
 - Yes. Completing the survey is required to officially close your report. Your feedback helps the university monitor the performance of the Maintenance and Engineering Division and improve service quality.
 15. When do I fill out the Client Satisfaction Survey?
 - The survey becomes available once the administrator marks your report as Resolved. It can be seen when you open the details of your report. You will need to submit it before the report status changes to Closed.
 16. Will I be notified when my report status changes?
-- Yes. You can monitor real-time status updates directly from your Dashboard. Each report card displays its current status so you can track progress from Pending all the way to Closed. You will also be notified via email for major status changes, such as when your report is marked as Resolved or Closed.
+- Yes. You can monitor status updates directly from your Dashboard. Each report card displays its current status so you can track progress from Pending all the way to Closed. You will also receive an email when your report changes to In Progress, Resolved, or Closed.
 17. Who reviews and validates my submitted report?
 - All submitted reports are routed to the university Administrator, who is part of the Maintenance and Engineering Division. The administrator validates the report, assigns the appropriate maintenance personnel, and updates the status as work progresses.
 18. How long does it take for a report to be resolved?
