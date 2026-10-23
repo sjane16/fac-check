@@ -41,7 +41,7 @@
         type="button"
         aria-label="Open chat with Checky"
         aria-controls="chat-window"
-        class="flex fixed right-6 rounded-full bottom-23 lg:bottom-6 z-40">
+        class="flex fixed right-6 rounded-full bottom-23 lg:bottom-6 z-40 {% if active_page != 'userDashboard' %}is-compact{% endif %}">
     <span>Chat with us</span>
     <img src="{% static 'accounts/images/checky-bubble-3d.svg' %}"
          width="64" height="64" alt="" />
@@ -112,9 +112,11 @@
         const quickReply = document.getElementById("quick-replies");
         const mobileBottomNav = document.getElementById("mobile-bottom-nav");
 
-        // Collapse the label on any downward page scroll, including restored positions.
+        const isDashboard = "{{ active_page|default:'' }}" === "userDashboard";
+
+        // Keep the label collapsed off-dashboard; on the dashboard, collapse it after scrolling.
         function updateChatbotLabel() {
-            chatbotToggle.classList.toggle('is-compact', window.scrollY > 0);
+            chatbotToggle.classList.toggle('is-compact', !isDashboard || window.scrollY > 0);
         }
         window.addEventListener('scroll', updateChatbotLabel, { passive: true });
         window.addEventListener('pageshow', updateChatbotLabel);
