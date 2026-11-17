@@ -1,4 +1,4 @@
-# KuhaMo
+# Fac-Check 
 
 A Django-based web application for field inspection and reporting, built as a 2026 capstone project.
 
@@ -25,7 +25,7 @@ A Django-based web application for field inspection and reporting, built as a 20
 
 ## Project Overview
 
-KuhaMo is a full-stack web application designed to digitize field inspection workflows. It enables field personnel to submit inspection reports with photos, findings, and recommendations, while administrators can review, manage, and export reports through a structured dashboard. The system supports user roles, report statuses, notifications, and job order PDF generation.
+Fac-Check is a full-stack web application designed to digitize field inspection workflows. It enables field personnel to submit inspection reports with photos, findings, and recommendations, while administrators can review, manage, and export reports through a structured dashboard. The system supports user roles, report statuses, notifications, and job order PDF generation.
 
 This thesis/capstone project was developed in 2026, focusing on real-world usability, clean architecture, and a smooth user experience for both field users and administrators.
 
